@@ -20,23 +20,20 @@ public:
 	{
 		if (!mapper.contains(name))
 			return false;
-		functions[mapper[name]] = func;
+		mapper[name] = func;
 		return true;
 	}
 	bool Add(std::string name, std::function<void()> func)
 	{
 		if (mapper.contains(name))
 			return false;
-		mapper.insert({ name, functions.size()});
-		functions.push_back(func);
+		mapper.insert({ name, func });
 		return true;
 	}
 	bool Remove(std::string name)
 	{
 		if (!mapper.contains(name))
 			return false;
-		size_t place = mapper[name];
-		functions.erase(functions.begin() + place, functions.begin() + place + 1);
 		mapper.erase(name);
 		return true;
 	}
@@ -44,20 +41,9 @@ public:
 	{
 		if (!mapper.contains(name))
 			return false;
-		functions[mapper[name]]();
-		return true;
-	}
-	bool Call_all()
-	{
-		if (functions.empty())
-			return false;
-
-		for (auto& func : functions)
-			func();
-
+		mapper[name]();
 		return true;
 	}
 private:
-	std::unordered_map<std::string, size_t> mapper;
-	std::vector<std::function<void()>> functions;
+	std::unordered_map<std::string, std::function<void()>> mapper;
 };
