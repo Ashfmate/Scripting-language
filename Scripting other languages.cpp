@@ -10,23 +10,11 @@ std::istream& getline(std::istream& istream, std::stringstream& stringstream)
 	return istream;
 }
 
-int main()
+void initialize(Function_Mapper& func_map, double& num1, double& num2, bool& is_value_given)
 {
-	Function_Mapper func_map;
-	
-	double num1 = 0;
-	double num2 = 0;
-
-	bool is_value_given = false;
-
 	auto give = [&is_value_given]
 	{
 		is_value_given = true;
-	};
-
-	auto assign = [&num2](const double val)
-	{
-		num2 = val;
 	};
 
 	auto addition = [&num1, &num2]
@@ -61,11 +49,28 @@ int main()
 	func_map.Add("print", print);
 	func_map.Add("give", give);
 	func_map.Add("assign");
+}
 
-	bool exit = false;
+int main()
+{
+	Function_Mapper func_map;
+	
+	double num1 = 0;
+	double num2 = 0;
 
+	bool is_value_given = false;
+
+	auto assign = [&num2](const double val)
+	{
+		num2 = val;
+	};
+
+	initialize(func_map, num1, num2, is_value_given);
+
+	std::ifstream file("Scripting.txt");
 	std::stringstream line;
-	getline(std::cin, line);
+	//getline(std::cin, line);
+	line << file.rdbuf();
 	std::string word;
 
 	while (line >> word)
@@ -78,6 +83,7 @@ int main()
 			line >> word;
 			auto change = std::bind(assign, std::stoi(word));
 			func_map.Change("assign", change);
+			func_map.Call("assign");
 		}
 	}
 

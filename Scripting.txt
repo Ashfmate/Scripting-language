@@ -1,0 +1,11 @@
+give 2
+add
+give 10
+divide
+give 30
+subtract
+give 7
+divide
+give 5
+add
+print
