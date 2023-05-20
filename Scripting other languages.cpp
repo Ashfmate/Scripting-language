@@ -14,8 +14,8 @@ int main()
 {
 	Function_Mapper func_map;
 	
-	int num1 = 0;
-	int num2 = 0;
+	double num1 = 0;
+	double num2 = 0;
 
 	bool is_value_given = false;
 
@@ -24,7 +24,7 @@ int main()
 		is_value_given = true;
 	};
 
-	auto assign = [&num2](const int val)
+	auto assign = [&num2](const double val)
 	{
 		num2 = val;
 	};
