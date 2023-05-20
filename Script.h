@@ -23,7 +23,7 @@ public:
 		mapper[name] = func;
 		return true;
 	}
-	bool Add(std::string name, std::function<void()> func)
+	bool Add(std::string name, std::function<void()> func = []{ OutputDebugString(L"Default function"); })
 	{
 		if (mapper.contains(name))
 			return false;
