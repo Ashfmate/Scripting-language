@@ -7,6 +7,10 @@
 #include <vector>
 #include <string>
 #include <Windows.h>
+#include <concepts>
+
+template <typename A>
+concept Action = requires {std::invocable<A>; };
 
 class Function_Mapper
 {
@@ -16,32 +20,38 @@ public:
 	{
 		mapper = other.mapper;
 	}
-	bool Change(std::string name, std::function<void()> func)
+	bool Change(const std::string& name, const Action auto func) const
 	{
-		if (!mapper.contains(name))
+		if (auto it = mapper.find(name); it == mapper.end())
 			return false;
-		mapper[name] = func;
+		else
+			it->second = func;
 		return true;
 	}
-	bool Add(std::string name, std::function<void()> func = []{ OutputDebugString(L"Default function"); })
+	bool Add(std::string name, const Action auto& func)
 	{
-		if (mapper.contains(name))
-			return false;
-		mapper.insert({ name, func });
-		return true;
+		auto [it, inserted] = mapper.emplace(name, func);
+		return inserted;
+	}
+	bool Add(std::string name)
+	{
+		auto [it, inserted] = mapper.emplace(name, [] { OutputDebugString(L"Default function"); });
+		return inserted;
 	}
 	bool Remove(std::string name)
 	{
-		if (!mapper.contains(name))
+		auto it = mapper.find(name);
+		if (it == mapper.end())
 			return false;
-		mapper.erase(name);
+		mapper.erase(it);
 		return true;
 	}
 	bool Call(std::string name)
 	{
-		if (!mapper.contains(name))
+		auto it = mapper.find(name);
+		if (it == mapper.end())
 			return false;
-		mapper[name]();
+		it->second();
 		return true;
 	}
 private:
