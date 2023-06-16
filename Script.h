@@ -65,6 +65,8 @@ class Engine
 public:
 	Engine()
 	{
+		memory.resize(MaxStorageCapacity / sizeof(double));
+
 		allocate_memory("num1");
 
 		allocate_memory("num2");
@@ -175,7 +177,7 @@ private:
 	// A 32 Kilobyte storage capacity
 	static constexpr size_t MaxStorageCapacity = (1 << 10) * 32;
 	// Preallocates four thousand doubles in static memory
-	std::array<double, MaxStorageCapacity / sizeof(double)> memory;
+	std::vector<double> memory;
 	// Pointers used for the names of the variables
 	std::unordered_map<std::string, size_t> pointers;
 	// The scripting container
