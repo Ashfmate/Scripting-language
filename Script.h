@@ -63,7 +63,7 @@ private:
 class Engine
 {
 public:
-	Engine(Function_Mapper& func) : func(func)
+	Engine()
 	{
 		allocate_memory("num1");
 
