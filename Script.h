@@ -111,6 +111,7 @@ public:
 	}
 
 	// This function starts parsing the file to execute the script
+	// @param path This is the path of the scripting file
 	void run_engine(std::string path)
 	{
 		auto assign = [&](const double& val)
@@ -145,11 +146,11 @@ private:
 	// @return True if the number of variables are less than memory
 	const bool allocate_memory(const std::string name, double initial_val = 0.0)
 	{
-		static size_t top = 0;
+		static size_t top = (size_t)-1;
 		if (++top == memory.size()) return false;
 
 		auto [it, inserted] = pointers.emplace(name, top);
-		if (inserted) top--;
+		if (!inserted) top--;
 
 		memory[std::distance(pointers.begin(),it)] = initial_val;
 
@@ -158,9 +159,9 @@ private:
 	// Helper function so that the look up is seemless
 	// @param name Used for the look up of the variable
 	// @return The variable in question
-	inline const double get_memory(const std::string& name) const
+	inline const double get_memory(std::string name) const
 	{
-		return memory[pointers[name]];
+		return memory.at(pointers.at(name));
 	}
 
 	// Helper function so that setting a variable is seemless
@@ -174,9 +175,9 @@ private:
 	// A 32 Kilobyte storage capacity
 	static constexpr size_t MaxStorageCapacity = (1 << 10) * 32;
 	// Preallocates four thousand doubles in static memory
-	static std::array<double, MaxStorageCapacity / sizeof(double)> memory;
+	std::array<double, MaxStorageCapacity / sizeof(double)> memory;
 	// Pointers used for the names of the variables
-	static std::unordered_map<std::string, size_t> pointers;
+	std::unordered_map<std::string, size_t> pointers;
 	// The scripting container
 	Function_Mapper func;
 };
