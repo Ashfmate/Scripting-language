@@ -22,7 +22,7 @@ public:
 	{
 		mapper = other.mapper;
 	}
-	bool Change(const std::string& name, const Action auto func) const
+	bool Change(const std::string& name, const Action auto func)
 	{
 		if (auto it = mapper.find(name); it == mapper.end())
 			return false;
