@@ -73,32 +73,32 @@ public:
 
 		auto give = [&]
 		{
-			memory[pointers["is_value_given"]] = 1.0;
+			set_memory("is_value_given", 1.0);
 		};
 
 		auto add = [&]
 		{
-			get_memory("num1") += get_memory("num2");
+			set_memory("num1", get_memory("num1") + get_memory("num2"));
 		};
 
 		auto minus = [&]
 		{
-			get_memory("num1") -= get_memory("num2");
+			set_memory("num1", get_memory("num1") - get_memory("num2"));
 		};
 
 		auto multiply = [&]
 		{
-			get_memory("num1") *= get_memory("num2");
+			set_memory("num1", get_memory("num1") * get_memory("num2"));
 		};
 
 		auto divide = [&]
 		{
-			get_memory("num1") /= get_memory("num2");
+			set_memory("num1", get_memory("num1") / get_memory("num2"));
 		};
 
 		auto print = [&]
 		{
-			std::cout << "\n\t\t\t---{" << memory[pointers["num1"]] << "}---\n";
+			std::cout << "\n\t\t\t---{" << get_memory("num1") << "}---\n";
 		};
 
 		func.Add("add", add);
@@ -110,11 +110,12 @@ public:
 		func.Add("assign");
 	}
 
+	// This function starts parsing the file to execute the script
 	void run_engine(std::string path)
 	{
 		auto assign = [&](const double& val)
 		{
-			get_memory("num2") = val;
+			set_memory("num2", val);
 		};
 
 		std::ifstream file(path);
@@ -124,7 +125,7 @@ public:
 
 		while (line >> word)
 		{
-			get_memory("is_value_given") = -1.0;
+			set_memory("is_value_given", -1.0);
 
 			if (word == "exit" || !func.Call(word))
 				break;
@@ -138,27 +139,44 @@ public:
 		}
 	}
 private:
-	bool allocate_memory(std::string name, double initial_val = 0.0)
+	// Helper function to assign a value to piece in memory as well as making a pointer for it
+	// @param name Used for the name of the variable
+	// @param initial_val Used as the initial value of the variable
+	// @return True if the number of variables are less than memory
+	const bool allocate_memory(const std::string name, double initial_val = 0.0)
 	{
-		static size_t top;
-
+		static size_t top = 0;
 		if (++top == memory.size()) return false;
 
 		auto [it, inserted] = pointers.emplace(name, top);
-
 		if (inserted) top--;
 
 		memory[std::distance(pointers.begin(),it)] = initial_val;
 
 		return true;
 	}
-	inline double& get_memory(std::string name)
+	// Helper function so that the look up is seemless
+	// @param name Used for the look up of the variable
+	// @return The variable in question
+	inline const double get_memory(const std::string& name) const
 	{
 		return memory[pointers[name]];
 	}
+
+	// Helper function so that setting a variable is seemless
+	// @param name Used for the look up of the variable
+	// @param val Used for the new value of the variable
+	inline void set_memory(const std::string& name, double val)
+	{
+		memory[pointers[name]] = val;
+	}
 private:
+	// A 32 Kilobyte storage capacity
 	static constexpr size_t MaxStorageCapacity = (1 << 10) * 32;
+	// Preallocates four thousand doubles in static memory
 	static std::array<double, MaxStorageCapacity / sizeof(double)> memory;
+	// Pointers used for the names of the variables
 	static std::unordered_map<std::string, size_t> pointers;
+	// The scripting container
 	Function_Mapper func;
 };
