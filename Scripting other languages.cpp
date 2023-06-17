@@ -5,7 +5,7 @@ int main()
 {
 	Engine eng;
 
-	eng.run_engine();
+	eng.run_engine("Scripting.txt");
 
 	while (!_kbhit());
 	return 0;
