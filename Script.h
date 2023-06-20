@@ -3,13 +3,45 @@
 #include <functional>
 #include <fstream>
 #include <unordered_map>
-#include <algorithm>
 #include <string>
 #include <iostream>
 
-bool is_num(char c)
+bool is_num(const std::string& str)
 {
-	return (c >= '0' && c <= '9') || c == '.';
+	if (str.empty())
+	{
+		return false;
+	}
+
+	bool has_decimal = false;
+	size_t index = 0;
+
+	if (str[0] == '-')
+	{
+		index = 1;
+	}
+
+	for (size_t i = index; i < str.size(); ++i)
+	{
+		if (std::isdigit(str[i]))
+		{
+			continue;
+		}
+
+		if (str[i] == '.')
+		{
+			if (has_decimal)
+			{
+				return false;  // multiple decimal points
+			}
+			has_decimal = true;
+			continue;
+		}
+
+		return false;  // invalid character
+	}
+
+	return true;
 }
 
 class Engine
@@ -85,7 +117,7 @@ private:
 			std::string var_name = word;
 			line >> word;
 			// If the person wants to initialize with a constant value
-			if (std::all_of(word.begin(), word.end(), is_num))
+			if (is_num(word))
 				allocate_memory(var_name, std::stod(word));
 			// If the person wants to initialize with an existing variable
 			else
@@ -106,7 +138,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid assignment, no constant or existing variable is provided");
 		// Alternatively, if the person provided a constant
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			set_memory(var_name, std::stod(word));
 		// If the person provided an existing variable name
 		else
@@ -149,7 +181,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid adding, no variable is provided for adding");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			first = std::stod(word);
 		// If the person enters a variable
 		else
@@ -159,7 +191,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid adding, no second variable or constant is provided for adding");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			second = std::stod(word);
 		// If the person enters a variable
 		else
@@ -182,7 +214,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid subracting, no variable is provided for subtracting");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			first = std::stod(word);
 		// If the person enters a variable
 		else
@@ -192,7 +224,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid subracting, no second variable or constant is provided for subtracting");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			second = std::stod(word);
 		// If the person enters a variable
 		else
@@ -217,7 +249,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid multiplication, no variable is provided for multiplying");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			first = std::stod(word);
 		// If the person enters a variable
 		else
@@ -227,7 +259,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid multiplication, no second variable or constant is provided for multiplying");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			second = std::stod(word);
 		// If the person enters a variable
 		else
@@ -252,7 +284,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid division, no variable is provided for dividing");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			first = std::stod(word);
 		// If the person enters a variable
 		else
@@ -262,7 +294,7 @@ private:
 		if (!(line >> word))
 			throw std::exception("Invalid division, no second variable or constant is provided for dividing");
 		// If the person enters a number
-		if (std::all_of(word.begin(), word.end(), is_num))
+		if (is_num(word))
 			second = std::stod(word);
 		// If the person enters a variable
 		else
