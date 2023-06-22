@@ -6,6 +6,13 @@
 #include <string>
 #include <iostream>
 
+#define parsing_check(line, word, error)					\
+	do														\
+	{														\
+		if (!(line >> word))								\
+			throw std::exception(error);					\
+	} while(0);
+
 bool is_num(const std::string& str)
 {
 	if (str.empty())
@@ -32,7 +39,7 @@ bool is_num(const std::string& str)
 		{
 			if (has_decimal)
 			{
-				return false;  // multiple decimal points
+				throw std::exception("Invalid number, multiple decimal points");
 			}
 			has_decimal = true;
 			continue;
@@ -43,6 +50,15 @@ bool is_num(const std::string& str)
 
 	return true;
 }
+
+#define var_const_input(word, var)							\
+	do														\
+	{														\
+		if (is_num(word))									\
+			set_memory(var, std::stod(word));				\
+		else												\
+			set_memory(var, get_memory(word));				\
+	} while(0);
 
 class Engine
 {
@@ -84,6 +100,10 @@ public:
 			{
 				divide(line, word);
 			});
+		key_words.emplace("iterate", [&](std::stringstream& line, std::string& word)
+			{
+				loop_index(line, word);
+			});
 	}
 
 	// This function starts parsing the file to execute the script
@@ -111,8 +131,7 @@ private:
 	void make_var(std::stringstream& line, std::string& word)
 	{
 		// If the person just wrote var and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid initialization, no variable name is provided to initialize anything to");
+		parsing_check(line, word, "Invalid initialization, no variable name is provided to initialize anything to");
 		// If the person wants to give an initial value
 		if (!line.eof())
 		{
@@ -133,25 +152,18 @@ private:
 	void assign_var(std::stringstream& line, std::string& word)
 	{
 		// If the person just wrote assign and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid assignment, no variable is provided to assign anything to");
+		parsing_check(line, word, "Invalid assignment, no variable is provided to assign anything to");
 		std::string var_name = word;
 		// If the person just wrote assign [var name] and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid assignment, no constant or existing variable is provided");
-		// Alternatively, if the person provided a constant
-		if (is_num(word))
-			set_memory(var_name, std::stod(word));
-		// If the person provided an existing variable name
-		else
-			set_memory(var_name, get_memory(word));
+		parsing_check(line, word, "Invalid assignment, no constant or existing variable is provided");
+		// If the person entered a variable or a constant number
+		var_const_input(word, var_name);
 	}
 	// Prints a variable or string with an new line
 	void print_line_var(std::stringstream& line, std::string& word)
 	{
 		// If the person just wrote print and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid printing, no variable is provided for printing");
+		parsing_check(line, word, "Invalid printing, no variable is provided for printing");
 		if (word.front() == '\"' && word.back() == '\"')
 			std::cout << word << "\n";
 		else
@@ -163,8 +175,7 @@ private:
 	void print_var(std::stringstream& line, std::string& word)
 	{
 		// If the person just wrote print and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid printing, no variable is provided for printing");
+		parsing_check(line, word, "Invalid printing, no variable is provided for printing");
 		if (word.front() == '\"' && word.back() == '\"')
 			std::cout << word;
 		else
@@ -180,29 +191,18 @@ private:
 		double second = 0.0;
 		// storing the value into first
 		// If the person enters just add and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid adding, no variable is provided for adding");
-		// If the person enters a number
-		if (is_num(word))
-			first = std::stod(word);
-		// If the person enters a variable
-		else
-			first = get_memory(word);
+		parsing_check(line, word, "Invalid adding, no variable is provided for adding");
+		// If the person enters a number or a variable
+		var_const_input(word, first);
 		// storing the value into second
 		// If the person enters just add [var name OR constant] and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid adding, no second variable or constant is provided for adding");
-		// If the person enters a number
-		if (is_num(word))
-			second = std::stod(word);
-		// If the person enters a variable
-		else
-			second = get_memory(word);
+		parsing_check(line, word, "Invalid adding, no second variable or constant is provided for adding");
+		// If the person enters a number or a variable
+		var_const_input(word, second);
 
 		if (!(line >> word) && word != "into")
 			throw std::exception("Invalid adding, the keyword into is not provided");
-		if (!(line >> word))
-			throw std::exception("Invalid adding, a variable is not provided");
+		parsing_check(line, word, "Invalid adding, a variable is not provided");
 		set_memory(word, first + second);
 	}
 	// Subracts two variables or two constants written as minus [var name OR constant] [var name OR constant] into [var name]
@@ -213,31 +213,20 @@ private:
 		double second = 0.0;
 		// storing the value into first
 		// If the person enters just minus and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid subracting, no variable is provided for subtracting");
-		// If the person enters a number
-		if (is_num(word))
-			first = std::stod(word);
-		// If the person enters a variable
-		else
-			first = get_memory(word);
+		parsing_check(line, word, "Invalid subracting, no variable is provided for subtracting");
+		// If the person enters a number or a variable
+		var_const_input(word, first);
 		// storing the value into second
 		// If the person enters just minus [var name OR constant] and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid subracting, no second variable or constant is provided for subtracting");
-		// If the person enters a number
-		if (is_num(word))
-			second = std::stod(word);
-		// If the person enters a variable
-		else
-			second = get_memory(word);
+		parsing_check(line, word, "Invalid subracting, no second variable or constant is provided for subtracting");
+		// If the person enters a number or a variable
+		var_const_input(word, second);
 
 		// If the person enters just minus [var name OR constants] [var name OR constants] and nothing else then throw, otherwise continue
 		if (!(line >> word) && word != "into")
 			throw std::exception("Invalid subracting, the keyword into is not provided");
 		// If the person enters just minus [var name OR constants] [var name OR constants] into and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid subracting, a variable is not provided");
+		parsing_check(line, word, "Invalid subracting, a variable is not provided");
 		set_memory(word, first - second);
 	}
 	// Multiplies two variables or two constants written as multiply [var name OR constant] [var name OR constant] into [var name]
@@ -248,31 +237,20 @@ private:
 		double second = 0.0;
 		// storing the value into first
 		// If the person enters just multiply and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid multiplication, no variable is provided for multiplying");
-		// If the person enters a number
-		if (is_num(word))
-			first = std::stod(word);
-		// If the person enters a variable
-		else
-			first = get_memory(word);
+		parsing_check(line, word, "Invalid multiplication, no variable is provided for multiplying");
+		// If the person enters a number or a variable
+		var_const_input(word, first);
 		// storing the value into second
 		// If the person enters just multiply [var name OR constant] and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid multiplication, no second variable or constant is provided for multiplying");
-		// If the person enters a number
-		if (is_num(word))
-			second = std::stod(word);
-		// If the person enters a variable
-		else
-			second = get_memory(word);
+		parsing_check(line, word, "Invalid multiplication, no second variable or constant is provided for multiplying");
+		// If the person enters a number or a variable
+		var_const_input(word, second);
 
 		// If the person enters just multiply [var name OR constants] [var name OR constants] and nothing else then throw, otherwise continue
 		if (!(line >> word) && word != "into")
 			throw std::exception("Invalid multiplication, the keyword into is not provided");
 		// If the person enters just multiply [var name OR constants] [var name OR constants] into and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid multiplication, a variable is not provided");
+		parsing_check(line, word, "Invalid multiplication, a variable is not provided");
 		set_memory(word, first * second);
 	}
 	// Divides two variables or two constants written as divide [var name OR constant] [var name OR constant] into [var name]
@@ -283,32 +261,70 @@ private:
 		double second = 0.0;
 		// storing the value into first
 		// If the person enters just divide and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid division, no variable is provided for dividing");
-		// If the person enters a number
-		if (is_num(word))
-			first = std::stod(word);
-		// If the person enters a variable
-		else
-			first = get_memory(word);
+		parsing_check(line, word, "Invalid division, no variable is provided for dividing");
+		// If the person enters a number or a variable
+		var_const_input(word, first);
 		// storing the value into second
 		// If the person enters just divide [var name OR constant] and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid division, no second variable or constant is provided for dividing");
-		// If the person enters a number
-		if (is_num(word))
-			second = std::stod(word);
-		// If the person enters a variable
-		else
-			second = get_memory(word);
+		parsing_check(line, word, "Invalid division, no second variable or constant is provided for dividing");
+		// If the person enters a number or a variable
+		var_const_input(word, second);
 
 		// If the person enters just divide [var name OR constants] [var name OR constants] and nothing else then throw, otherwise continue
 		if (!(line >> word) && word != "into")
 			throw std::exception("Invalid division, the keyword into is not provided");
 		// If the person enters just divide [var name OR constants] [var name OR constants] into and nothing else then throw, otherwise continue
-		if (!(line >> word))
-			throw std::exception("Invalid division, a variable is not provided");
+		parsing_check(line, word, "Invalid division, a variable is not provided");
 		set_memory(word, first / second);
+	}
+	// This is a loop that loops per an index where an end is pronounced
+	void loop_index(std::stringstream& line, std::string& word)
+	{
+		auto next_add = [](int& num)
+		{
+			++num;
+		};
+		auto next_sub = [](int& num)
+		{
+			--num;
+		};
+		void(*next)(int& num) = next_add;
+		double start__ = 0.0;
+		double end__ = 0.0;
+
+		// If the person only entered "iterate" without start, end or a function
+		parsing_check(line, word, "Invalid iteration, must provide the starting number");
+		// If the person enters a number or a variable
+		var_const_input(word, start__);
+		// If the person only entered "iterator [start]" without end or a function
+		parsing_check(line, word, "Invalid iteration, must provide the ending number");
+		// If the person enters a number or a variable
+		var_const_input(word, end__);
+		// If the person only entered "iterator [start] [end]" without a function
+		parsing_check(line, word, "Invalid iteration, must provide a statement to loop");
+		auto it = key_words.find(word);
+		if (it == key_words.end())
+			throw std::exception("Invalid iteration, statement is unknown");
+
+		int start = (int)round(start__);
+		int end = (int)round(end__);
+
+		if (start == end)
+			it->second(line, word);
+		else if (start > end)
+			next = next_sub;
+
+		std::stringstream line_copy;
+		getline(line, line_copy);
+		std::string line_copy_str = word + line_copy.str();
+		for (; start != end; next(start))
+		{
+			line_copy.str(line_copy_str);
+			std::string word_copy;
+			line_copy >> word_copy;
+			it->second(line_copy, word_copy);
+			line_copy.clear();
+		}
 	}
 private:
 	// A way to turn a line of std::cin or any other input stream into a stringstream
@@ -359,6 +375,12 @@ private:
 			it->second = val;
 		else
 			throw std::exception(std::string("Bad memory set error; the supposed " + name + " does not exist").c_str());
+	}
+
+	//This function only exists for simplicity
+	inline void set_memory(double& var, double val)
+	{
+		var = val;
 	}
 
 	inline const bool is_var_exist(const std::string& name) const
