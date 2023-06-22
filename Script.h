@@ -91,17 +91,19 @@ public:
 	void run_engine(std::string path)
 	{
 		std::ifstream file(path);
-		std::stringstream stream;
+		std::stringstream file_stream;
+		std::stringstream line;
+		file_stream << file.rdbuf();
 
-		while (!getline(file, stream).eof())
+		while (getline(file_stream, line))
 		{
 			std::string word;
-			stream >> word;
+			line >> word;
 			if (auto it = key_words.find(word); it == key_words.end() || word == "exit")
 				break;
 			else
-				it->second(stream, word);
-			stream.clear();
+				it->second(line, word);
+			line.clear();
 		}
 	}
 private:
@@ -316,7 +318,12 @@ private:
 	std::istream& getline(std::istream& istream, std::stringstream& stringstream)
 	{
 		std::string line;
-		std::getline(istream, line);
+		for (char cur = istream.get(); istream.good(); cur = istream.get())
+		{
+			if (cur == '\n' || cur == ';')
+				break;
+			line.push_back(cur);
+		}
 		stringstream.str(line);
 		return istream;
 	}
