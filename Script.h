@@ -419,7 +419,6 @@ private:
 };
 
 // TODO UNTIL I AM DONE WITH THIS PROJECT
-// Make the # variable which accesses the iterate index
 // Make a conditional if statement
 // Make it possible for multiple datatypes to be declared
 // Make it so that the code has structure
