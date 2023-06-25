@@ -318,11 +318,17 @@ private:
 	// @param initial_val Used as the initial value of the variable
 	const Engine& allocate_memory(const std::string name, double initial_val = 0.0)
 	{
-		auto [it, inserted] = variables.emplace(name, initial_val);
-		if (!inserted) 
-			throw std::exception("Allocation duplicate, cannot duplicate allocation");
+		if (auto it = variables.try_emplace(name,initial_val); !it.second) return *this;
+		
+		throw std::exception("Allocation duplicate, cannot duplicate allocation");
+	}
 
-		return *this;
+	// Helper function to delete a variable in memory
+	// @param name Used for the name of the variable to be deleted
+	const Engine& deallocate_memory(const std::string name)
+	{
+		if (auto it = variables.find(name); it != variables.end())
+			variables.erase(it);
 	}
 
 	// Helper function so that the look up is seemless
@@ -387,3 +393,10 @@ private:
 
 #pragma endregion
 };
+
+// TODO UNTIL I AM DONE WITH THIS PROJECT
+// Make the # variable which accesses the iterate index
+// Make a conditional if statement
+// Make it possible for multiple datatypes to be declared
+// Make it so that the code has structure
+// Make it possible to write functions
