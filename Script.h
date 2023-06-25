@@ -270,25 +270,46 @@ private:
 		if (it == key_words.end())
 			throw std::exception("Invalid iteration, statement is unknown");
 
+		// Round them into integers so that the for loop would be better
 		int start = (int)round(start__);
 		int end = (int)round(end__);
 
+		// If the person specified two variables of the same size, then the it will only be done once
 		if (start == end)
 			it->second(line, word);
+		// If the person made the end less than the start then it will be looped backwards
 		else if (start > end)
 			next = next_sub;
 
 		std::stringstream line_copy;
 		getline(line, line_copy);
 		std::string line_copy_str = word + line_copy.str();
+		// A try catch so that if the variable (#) is already made, this then stores the value in a temp variable then returns it back
+		bool is_iterate_variable_allocated = false;
+		try
+		{
+			allocate_memory("#");
+		}
+		catch (const std::exception&)
+		{
+			is_iterate_variable_allocated = true;
+			set_memory("__temp", get_memory("#"));
+		}
+		// The loop of the function
 		for (; start != end; next(start))
 		{
+			set_memory("#", double(start));
 			line_copy.str(line_copy_str);
 			std::string word_copy;
 			line_copy >> word_copy;
 			it->second(line_copy, word_copy);
 			line_copy.clear();
 		}
+		// Returning the iterate variable back to its original value or deallocating it
+		if (!is_iterate_variable_allocated)
+			deallocate_memory("#");
+		else
+			set_memory("#", get_memory("__temp"));
 	}
 
 #pragma endregion
@@ -318,9 +339,9 @@ private:
 	// @param initial_val Used as the initial value of the variable
 	const Engine& allocate_memory(const std::string name, double initial_val = 0.0)
 	{
-		if (auto it = variables.try_emplace(name,initial_val); !it.second) return *this;
+		if (auto it = variables.try_emplace(name,initial_val); it.second) return *this;
 		
-		throw std::exception("Allocation duplicate, cannot duplicate allocation");
+		throw std::exception("Invalid allocation, cannot duplicate allocation");
 	}
 
 	// Helper function to delete a variable in memory
@@ -329,6 +350,9 @@ private:
 	{
 		if (auto it = variables.find(name); it != variables.end())
 			variables.erase(it);
+		else
+			throw std::exception("Invalid deallocation, cannot deallocate a non existing variable");
+		return *this;
 	}
 
 	// Helper function so that the look up is seemless
