@@ -13,44 +13,6 @@
 			throw std::exception(error);					\
 	} while(0);
 
-bool is_num(const std::string& str)
-{
-	if (str.empty())
-	{
-		return false;
-	}
-
-	bool has_decimal = false;
-	size_t index = 0;
-
-	if (str[0] == '-')
-	{
-		index = 1;
-	}
-
-	for (size_t i = index; i < str.size(); ++i)
-	{
-		if (std::isdigit(str[i]))
-		{
-			continue;
-		}
-
-		if (str[i] == '.')
-		{
-			if (has_decimal)
-			{
-				throw std::exception("Invalid number, multiple decimal points");
-			}
-			has_decimal = true;
-			continue;
-		}
-
-		return false;  // invalid character
-	}
-
-	return true;
-}
-
 #define var_const_input(word, var)							\
 	do														\
 	{														\
@@ -126,7 +88,9 @@ public:
 			line.clear();
 		}
 	}
+#pragma region Private_Mapped_Functions
 private:
+
 	// Defines a variable
 	void make_var(std::stringstream& line, std::string& word)
 	{
@@ -326,6 +290,11 @@ private:
 			line_copy.clear();
 		}
 	}
+
+#pragma endregion
+
+#pragma region Private_Helper_Functions
+
 private:
 	// A way to turn a line of std::cin or any other input stream into a stringstream
 	// @param istream This is for the std::cin to be used, can also use any other input stream
@@ -377,18 +346,44 @@ private:
 			throw std::exception(std::string("Bad memory set error; the supposed " + name + " does not exist").c_str());
 	}
 
-	//This function only exists for simplicity
+	// This function only exists for simplicity
 	inline void set_memory(double& var, double val)
 	{
 		var = val;
 	}
 
-	inline const bool is_var_exist(const std::string& name) const
+	// This helper function checks if a string is all number or not
+	bool is_num(const std::string& str)
 	{
-		return variables.contains(name);
+		if (str.empty()) return false;
+
+		bool has_decimal = false;
+		size_t i = 0;
+
+		if (str[0] == '-') i = 1;
+
+		for (; i < str.size(); ++i)
+		{
+			if (std::isdigit(str[i])) continue;
+
+			else if (str[i] != '.') return false;  // invalid character
+
+			else if (has_decimal) return false;
+
+			has_decimal = true;
+		}
+
+		return true;
 	}
+
+#pragma endregion
+
+#pragma region Private_Variables
+
 private:
 	// Pointers used for the names of the variables
 	std::unordered_map<std::string, double> variables;
 	std::unordered_map<std::string, std::function<void(std::stringstream&, std::string&)>> key_words;
+
+#pragma endregion
 };
