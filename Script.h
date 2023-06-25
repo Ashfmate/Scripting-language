@@ -352,7 +352,7 @@ private:
 		var = val;
 	}
 
-	// This helper function checks if a string is all number or not
+	// This helper function checks if a string is all numeric or not
 	bool is_num(const std::string& str)
 	{
 		if (str.empty()) return false;
