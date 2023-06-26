@@ -323,14 +323,6 @@ private:
 	// Also written as if [var name OR constant] [more OR less OR equal] [var name OR constant] [code]
 	void if_statement(std::stringstream& line, std::string& word)
 	{
-		// If the person only wrote "if" and nothing else, otherwise continue
-		parsing_check(line, word, "Invalid conditional if, you must provide the left operand");
-		// Assigning the left hand side of the conditional expression
-		double left_operand = 0.0;
-		double right_operand = 0.0;
-		var_const_input(word, left_operand);
-		parsing_check(line, word, "Invalid conditional if, you must provide conditional operator");
-		
 		auto more_oper = [](double left, double right)
 		{
 			return left > right;
@@ -343,25 +335,46 @@ private:
 		{
 			return left == right;
 		};
+		bool acc_res = false;
 		bool(*cond_oper)(double, double) = nullptr;
-		if (word == "more")
-			cond_oper = more_oper;
-		else if (word == "less")
-			cond_oper = less_oper;
-		else if (word == "equal")
-			cond_oper = equal_oper;
-		else
-			throw std::exception("Invalid conditional if, unreckognised conditional operator");
+		double left_operand = 0.0;
+		double right_operand = 0.0;
+		std::string log_oper = "or";
+		// This loop will 
+		do
+		{
+			// If the person did not write a left operand
+			parsing_check(line, word, "Invalid conditional if, you must provide the left operand");
+			// Assigning the left hand side of the conditional expression
+			var_const_input(word, left_operand);
+			// If the person only wrote "[var name OR constant]" and nothing else, otherwise, continue
+			parsing_check(line, word, "Invalid conditional if, you must provide conditional operator");
 
-		// If the person only wrote "if [var name OR constant] [operator]" and that is it, otherwise, continue
-		parsing_check(line, word, "Invalid conditional if, you must provide the right operand");
-		var_const_input(word, right_operand);
-		// If the person only wrote "if [var name OR constant] [operator] [var name OR constant] and that is it, otherwise, continue
-		parsing_check(line, word, "Invalid conditional if, must provide a statement to loop");
+			if (word == "more")
+				cond_oper = more_oper;
+			else if (word == "less")
+				cond_oper = less_oper;
+			else if (word == "equal")
+				cond_oper = equal_oper;
+			else
+				throw std::exception("Invalid conditional if, unreckognised conditional operator");
+
+			// If the person only wrote "[var name OR constant] [operator]" and that is it, otherwise, continue
+			parsing_check(line, word, "Invalid conditional if, you must provide the right operand");
+			var_const_input(word, right_operand);
+			// If the person only wrote "[var name OR constant] [operator] [var name OR constant]" and that is it, otherwise, continue
+			parsing_check(line, word, "Invalid conditional if, must provide a statement or logical operation");
+			if (log_oper == "or")
+				acc_res = acc_res || cond_oper(left_operand, right_operand);
+			else if (log_oper == "and")
+				acc_res = acc_res && cond_oper(left_operand, right_operand);
+			if (word == "and" || word == "or") log_oper = word;
+			else break;
+		} while (true);
 		auto it = key_words.find(word);
 		if (it == key_words.end()) throw std::exception("Invalid conditional if, statement is unknown");
 
-		if (cond_oper(left_operand,right_operand))
+		if (acc_res)
 			it->second(line, word);
 	}
 #pragma endregion
@@ -471,7 +484,6 @@ private:
 };
 
 // TODO UNTIL I AM DONE WITH THIS PROJECT
-// Make a conditional if statement
 // Make it so that the code has structure
 // Make it possible to write functions
 // Make it possible for multiple datatypes to be declared
