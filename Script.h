@@ -1,3 +1,5 @@
+#pragma region Preprocessors
+
 #pragma once
 #include <sstream>
 #include <functional>
@@ -21,6 +23,8 @@
 		else												\
 			set_memory(var, get_memory(word));				\
 	} while(0);
+
+#pragma endregion
 
 class Engine
 {
