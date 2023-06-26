@@ -420,6 +420,6 @@ private:
 
 // TODO UNTIL I AM DONE WITH THIS PROJECT
 // Make a conditional if statement
-// Make it possible for multiple datatypes to be declared
 // Make it so that the code has structure
 // Make it possible to write functions
+// Make it possible for multiple datatypes to be declared
