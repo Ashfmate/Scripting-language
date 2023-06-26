@@ -29,7 +29,7 @@ public:
 	{
 		allocate_memory("__temp");
 		allocate_memory("true", 1.0);
-		allocate_memory("false", -1.0);
+		allocate_memory("false", 0.0);
 		key_words.emplace("var", [&](std::stringstream& line, std::string& word)
 			{
 				make_var(line, word);
@@ -65,6 +65,10 @@ public:
 		key_words.emplace("iterate", [&](std::stringstream& line, std::string& word)
 			{
 				loop_index(line, word);
+			});
+		key_words.emplace("if", [&](std::stringstream& line, std::string& word)
+			{
+				if_statement(line, word);
 			});
 	}
 
@@ -311,7 +315,51 @@ private:
 		else
 			set_memory("#", get_memory("__temp"));
 	}
+	// This is a conditional If that will execute some code according to a some boolean expression
+	// Also written as if [var name OR constant] [more OR less OR equal] [var name OR constant] [code]
+	void if_statement(std::stringstream& line, std::string& word)
+	{
+		// If the person only wrote "if" and nothing else, otherwise continue
+		parsing_check(line, word, "Invalid conditional if, you must provide the left operand");
+		// Assigning the left hand side of the conditional expression
+		double left_operand = 0.0;
+		double right_operand = 0.0;
+		var_const_input(word, left_operand);
+		parsing_check(line, word, "Invalid conditional if, you must provide conditional operator");
+		
+		auto more_oper = [](double left, double right)
+		{
+			return left > right;
+		};
+		auto less_oper = [](double left, double right)
+		{
+			return left < right;
+		};
+		auto equal_oper = [](double left, double right)
+		{
+			return left == right;
+		};
+		bool(*cond_oper)(double, double) = nullptr;
+		if (word == "more")
+			cond_oper = more_oper;
+		else if (word == "less")
+			cond_oper = less_oper;
+		else if (word == "equal")
+			cond_oper = equal_oper;
+		else
+			throw std::exception("Invalid conditional if, unreckognised conditional operator");
 
+		// If the person only wrote "if [var name OR constant] [operator]" and that is it, otherwise, continue
+		parsing_check(line, word, "Invalid conditional if, you must provide the right operand");
+		var_const_input(word, right_operand);
+		// If the person only wrote "if [var name OR constant] [operator] [var name OR constant] and that is it, otherwise, continue
+		parsing_check(line, word, "Invalid conditional if, must provide a statement to loop");
+		auto it = key_words.find(word);
+		if (it == key_words.end()) throw std::exception("Invalid conditional if, statement is unknown");
+
+		if (cond_oper(left_operand,right_operand))
+			it->second(line, word);
+	}
 #pragma endregion
 
 #pragma region Private_Helper_Functions

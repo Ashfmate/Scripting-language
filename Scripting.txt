@@ -1,4 +1,4 @@
-var a 1.0
-iterate 1 5 add a # into a
-println a
+var a true
+if a equal false println "TRUE!!!"
+if a equal true println "FALSE!!!"
 exit
