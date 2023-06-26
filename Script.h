@@ -364,7 +364,6 @@ private:
 			var_const_input(word, right_operand);
 			// If the person only wrote "[var name OR constant] [operator] [var name OR constant]" and that is it, otherwise, continue
 			parsing_check(line, word, "Invalid conditional if, must provide a statement or logical operation");
-			// if a equal true and a more false or a equal false ...
 			if (log_oper == "or")
 				acc_res = acc_res || cond_oper(left_operand, right_operand);
 			else if (log_oper == "and")
@@ -485,7 +484,6 @@ private:
 };
 
 // TODO UNTIL I AM DONE WITH THIS PROJECT
-// Make a conditional if statement (still need to add the conditional AND and condtitional OR)
 // Make it so that the code has structure
 // Make it possible to write functions
 // Make it possible for multiple datatypes to be declared
