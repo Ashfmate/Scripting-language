@@ -22,17 +22,13 @@ public:
 		Count
 	};
 	using DataType = std::variant<bool, char, int, double, std::string>;
-	struct ValueType
-	{
-		DataType value;
-		Type type;
-	};
 public:
 	ScriptEngine()
 	{
 	}
 	ScriptEngine& set_var(std::string name, DataType value);
-	ValueType get_var(std::string name);
+	DataType get_var(std::string name);
+	Type get_type(DataType val);
 private:
 	
 	std::unordered_map<std::string, DataType> variables;
