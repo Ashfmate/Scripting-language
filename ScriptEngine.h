@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <fstream>
+#include <vector>
 
 #pragma endregion
 
@@ -26,7 +27,8 @@ private:
 
 enum Errors : int
 {
-	Var_Not_Exist
+	Var_Not_Exist,
+	Data_Type_Not_Exist
 };
 
 class ScriptEngine
@@ -47,10 +49,12 @@ public:
 	{
 	}
 	ScriptEngine& set_var(std::string name, DataType value);
-	DataType get_var(std::string name);
+	DataType get_var(std::string name, size_t index = 0);
+	std::vector<DataType> get_var_range(std::string name);
 	Type get_type(DataType val);
 private:
 	
-	std::unordered_map<std::string, DataType> variables;
+	std::unordered_map<std::string, std::vector<DataType>> variables;
 	std::string path;
+private:
 };
