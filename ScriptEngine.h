@@ -8,28 +8,35 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
+#include <optional>
+#include <expected>
 
 #pragma endregion
 
-class script_error : public std::runtime_error
+
+class script_error
 {
 public:
+	enum Errors : int
+	{
+		Var_Not_Exist
+	};
+public:
 	script_error() = default;
-	script_error(std::string msg) : std::runtime_error(msg), err_code(0){}
-	script_error(std::string msg, int err_code) : std::runtime_error(msg), err_code(err_code){}
+	script_error(std::string msg, Errors err_code) : err_msg(msg), err_code(err_code) { }
 	const int which() const
 	{
 		return err_code;
 	}
+	const std::string what() const
+	{
+		return err_msg;
+	}
 private:
-	int err_code;
+	Errors err_code;
+	std::string err_msg;
 };
 
-enum Errors : int
-{
-	Var_Not_Exist,
-	Data_Type_Not_Exist
-};
 
 class ScriptEngine
 {
@@ -41,19 +48,19 @@ public:
 		Int,
 		Double,
 		String,
+		Null,
 		Count
 	};
-	using DataType = std::variant<bool, char, int, double, std::string>;
+	using DataType = std::optional<std::variant<bool, char, int, double, std::string>>;
 public:
 	ScriptEngine()
 	{
 	}
-	ScriptEngine& set_var(std::string name, DataType value);
-	DataType get_var(std::string name, size_t index = 0);
-	std::vector<DataType> get_var_range(std::string name);
+	std::expected<ScriptEngine*, script_error> set_var(std::string name, DataType value);
+	std::expected<DataType, script_error> get_var(std::string name, size_t index = 0);
+	std::expected<std::vector<DataType>, script_error> get_var_range(std::string name);
 	Type get_type(DataType val);
 private:
-	
 	std::unordered_map<std::string, std::vector<DataType>> variables;
 	std::string path;
 private:
