@@ -12,26 +12,14 @@ int main()
 
 	eng.set_var("double", double(5.0));
 
-	switch (eng.get_type(eng.get_var("double")))
+	try
 	{
-	case ScriptEngine::Boolean:
-		fmt::print("This some good bool");
-		break;
-	case ScriptEngine::Char:
-		fmt::print("This some good char");
-		break;
-	case ScriptEngine::Double:
-		fmt::print("This some good double");
-		break;
-	case ScriptEngine::Int:
-		fmt::print("This some good int");
-		break;
-	case ScriptEngine::String:
-		fmt::print("This some good string");
-		break;
-	default:
-		fmt::print("This some good Nothing");
-		break;
+		auto var = eng.get_var("h");
+
+	}
+	catch (const script_error& e)
+	{
+		fmt::print("{} : error code {}", e.what(), e.which());
 	}
 
 	while (!_kbhit());

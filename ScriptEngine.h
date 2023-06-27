@@ -24,6 +24,11 @@ private:
 	int err_code;
 };
 
+enum Errors : int
+{
+	Var_Not_Exist
+};
+
 class ScriptEngine
 {
 public:

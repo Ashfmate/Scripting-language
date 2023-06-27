@@ -10,7 +10,7 @@ ScriptEngine::DataType ScriptEngine::get_var(std::string name)
 {
 	if (auto it = variables.find(name); it != variables.end())
 		return it->second;
-	throw script_error("Variable does not exist", 0);
+	throw script_error("Variable does not exist", Var_Not_Exist);
 }
 
 ScriptEngine::Type ScriptEngine::get_type(DataType val)
