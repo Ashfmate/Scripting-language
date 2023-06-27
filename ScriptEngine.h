@@ -63,5 +63,4 @@ public:
 private:
 	std::unordered_map<std::string, std::vector<DataType>> variables;
 	std::string path;
-private:
 };
