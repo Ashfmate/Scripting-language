@@ -9,6 +9,21 @@
 #include <fstream>
 
 #pragma endregion
+
+class script_error : public std::runtime_error
+{
+public:
+	script_error() = default;
+	script_error(std::string msg) : std::runtime_error(msg), err_code(0){}
+	script_error(std::string msg, int err_code) : std::runtime_error(msg), err_code(err_code){}
+	const int which() const
+	{
+		return err_code;
+	}
+private:
+	int err_code;
+};
+
 class ScriptEngine
 {
 public:
