@@ -1,20 +1,11 @@
 #include "ScriptEngine.h"
-#include "Script.h"
 #include <fmt\format.h>
 #include <fmt\ranges.h>
 
 int main()
 {
-	Engine eng;
-
-	eng.run_engine("Scripting.txt");
-
-	/*ScriptEngine eng;
-
-	eng.app_var("double", 5.23423);
-	eng.app_var("double", "Hello boi");
-	eng.app_var("double", 1991);
-	eng.app_var("double", std::nullopt);
+	ScriptEngine eng("Scripting.txt");
+	eng.start();
 
 	std::vector<std::string> res;
 
@@ -37,7 +28,7 @@ int main()
 	else
 	{
 		fmt::print("{} : {}\n", him.error().what(), him.error().which());
-	}*/
+	}
 
 	system("pause");
 	return 0;
