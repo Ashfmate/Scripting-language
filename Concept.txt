@@ -1,0 +1,19 @@
+// code
+{
+	Data_Type var = value // Initialization
+	// class name {}; // For later
+	// Inside body
+	{
+		while (expression) {code}
+		if (expression) {code}
+		for (Initialization; expression; operation) {code}
+	}
+	// Outside body
+	{		
+		Data_Type func(params) {code}
+	}
+}
+
+//
+string var = {"hello", "hi", "how is you"};
+//

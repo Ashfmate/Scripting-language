@@ -1,15 +1,20 @@
 #include "ScriptEngine.h"
+#include "Script.h"
 #include <fmt\format.h>
 #include <fmt\ranges.h>
 
 int main()
 {
-	ScriptEngine eng;
+	Engine eng;
 
-	eng.set_var("double", 5.23423);
-	eng.set_var("double", "Hello boi");
-	eng.set_var("double", 1991);
-	eng.set_var("double", std::nullopt);
+	eng.run_engine("Scripting.txt");
+
+	/*ScriptEngine eng;
+
+	eng.app_var("double", 5.23423);
+	eng.app_var("double", "Hello boi");
+	eng.app_var("double", 1991);
+	eng.app_var("double", std::nullopt);
 
 	std::vector<std::string> res;
 
@@ -21,7 +26,6 @@ int main()
 			switch (eng.get_type(cur))
 			{
 			case ScriptEngine::Boolean:	res.emplace_back(std::get<bool>(cur.value()) ? "True" : "False");	break;
-			case ScriptEngine::Char:	res.emplace_back(std::string(std::get<char>(cur.value()), 1));		break;
 			case ScriptEngine::Int:		res.emplace_back(std::to_string(std::get<int>(cur.value())));		break;
 			case ScriptEngine::Double:	res.emplace_back(std::to_string(std::get<double>(cur.value())));	break;
 			case ScriptEngine::String:	res.emplace_back(std::get<std::string>(cur.value()));				break;
@@ -33,7 +37,7 @@ int main()
 	else
 	{
 		fmt::print("{} : {}\n", him.error().what(), him.error().which());
-	}
+	}*/
 
 	system("pause");
 	return 0;

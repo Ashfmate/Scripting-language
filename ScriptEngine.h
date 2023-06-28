@@ -19,7 +19,8 @@ class script_error
 public:
 	enum Errors : int
 	{
-		Var_Not_Exist
+		Var_Not_Exist,
+		Out_Of_Range
 	};
 public:
 	script_error() = default;
@@ -44,19 +45,19 @@ public:
 	enum Type
 	{
 		Boolean,
-		Char,
 		Int,
 		Double,
 		String,
 		Null,
 		Count
 	};
-	using DataType = std::optional<std::variant<bool, char, int, double, std::string>>;
+	using DataType = std::optional<std::variant<bool, int, double, std::string>>;
 public:
 	ScriptEngine()
 	{
 	}
-	std::expected<ScriptEngine*, script_error> set_var(std::string name, DataType value);
+	std::expected<ScriptEngine*, script_error> set_var(std::string name, DataType value, size_t index = 0);
+	ScriptEngine& app_var(std::string name, DataType value);
 	std::expected<DataType, script_error> get_var(std::string name, size_t index = 0);
 	std::expected<std::vector<DataType>, script_error> get_var_range(std::string name);
 	Type get_type(DataType val);
