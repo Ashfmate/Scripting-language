@@ -15,9 +15,24 @@
 }
 
 //
-hello = 2.0 , "hello" , true , null // variable = data type , data type , data type , nullopt { "hello", "=", "2.0", ""hello"", "true", "null" }
-hello[1] **(hello at 1)** = "This" // variable index = data type { ("hello[1]") OR ("hello", "at", "1"), "=", ""This"" }
-if hello at 1 equal "This" println "Horray!!!" keyword expression code { "if", "hello", "at", "1", "equal", ""This"", "println", ""Hooray!!"" }
-elf hello at 0 equal 2.0 println "Also good" keyword expression code { "elf", "hello", "at", "0", "equal", "2,0", "println", ""Also good"" }
-else println "Sad" keyword code { "else", "println", "Sad" }
+	hello 	= 	2.0 , "hello" , true , null // variable = data type , data type , data type , nullopt 
+	^^^^^   ^   ^^^   ^^^^^^^   ^^^^   ^^^^	
+{  "hello","=","2.0",""hello"","true","null" }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	hello[1] **(	hello 	at 		1)** = 		"This" // variable index = data type 
+	^^^^^^^^		^^^^^	^^		^	 ^		 ^^^^
+{ ("hello[1]") OR ("hello","at",   "1"),"=",   ""This"" }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if 		hello 	at 		1 	equal 	"This" 		println 	"Horray!!!" // keyword expression code
+	^^		^^^^^	^^		^	^^^^^	^^^^^^		^^^^^^^		^^^^^^^^^^^
+{  "if",   "hello","at",   "1","equal",""This"",   "println",  ""Hooray!!!"" }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	elf 	hello 	at 		0 	equal 	2.0 	println 	"Also good" // keyword expression code 
+	^^^		^^^^^	^^		^	^^^^^	^^^		^^^^^^^		^^^^^^^^^^^
+{  "elf",  "hello","at",   "0","equal","2,0",  "println",  ""Also good"" }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	else 	println 	"Sad" // keyword code 
+	^^^^	^^^^^^^		 ^^^
+{  "else", "println",   "Sad" }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //

@@ -12,23 +12,27 @@
 #include <expected>
 #include <algorithm>
 #include <memory>
+#include <format>
 
 #pragma endregion
 
 std::string to_lower(std::string word);
 
-class script_error
+class ScriptError
 {
 public:
 	enum Errors : int
 	{
 		Var_Not_Exist,
 		Out_Of_Range,
-		Type_Not_Supported
+		Type_Not_Supported,
+		Invalid_Statement,
+		Assign_Operator_Missing,
+		Missing_Quote
 	};
 public:
-	script_error() = default;
-	script_error(std::string msg, Errors err_code) : err_msg(msg), err_code(err_code) { }
+	ScriptError() = default;
+	ScriptError(std::string msg, Errors err_code) : err_msg(msg), err_code(err_code) { }
 	const int which() const
 	{
 		return err_code;
@@ -67,11 +71,13 @@ public:
 	};
 public:
 	ScriptEngine(std::string path);
-	std::expected<ScriptEngine*, script_error> set_var(std::string name, DataType value, size_t index = 0);
-	ScriptEngine& app_var(std::string name, DataType value);
-	std::expected<DataType, script_error> get_var(std::string name, size_t index = 0);
-	std::expected<std::vector<DataType>, script_error> get_var_range(std::string name);
-	Type get_type(DataType val);
+	std::expected<ScriptEngine*, ScriptError> set_var(const std::string name, const DataType value, const size_t index = 0);
+	std::expected<ScriptEngine*, ScriptError> set_var(const std::string name, const std::vector<DataType> value);
+	ScriptEngine& app_var(const std::string name, const DataType value);
+	ScriptEngine& app_var(const std::string name, const std::vector<DataType> value);
+	const std::expected<DataType, ScriptError> get_var(const std::string name, const size_t index = 0);
+	const std::expected<std::vector<DataType>, ScriptError> get_var_range(const std::string name);
+	const Type get_type(const DataType val) const;
 	void start();
 private:
 	std::unordered_map<std::string, std::vector<DataType>> variables;
@@ -83,12 +89,16 @@ private:
 		Parser(ScriptEngine& eng);
 		void operator()(std::string path);
 	private:
-		const bool is_key_word(const std::string word) const;
-		const std::expected<DataType, script_error> parse_type(const std::string word) const;
+		const std::expected<void, ScriptError> pick_statment(const std::string line);
+		const std::expected<void, ScriptError> create_var(std::istringstream& line);
+	private:
+		const std::expected<std::string, ScriptError> parse_quotes(std::string first_word, std::istringstream& line);
+		const std::vector<std::string>::iterator find_key_word(const std::string word);
+		const std::expected<DataType, ScriptError> parse_type(const std::string word) const;
 		// This helper function checks if a string is all numeric or not
 		const bool is_num(const std::string& str) const;
 	private:
-		Code code;
+		std::optional<std::vector<std::string>> keywords;
 		ScriptEngine& eng;
 	};
 };
