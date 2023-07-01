@@ -34,5 +34,8 @@
     <Text Include="Scripting.txt">
       <Filter>Resource Files</Filter>
     </Text>
+    <Text Include="Concept.txt">
+      <Filter>Resource Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -136,6 +136,7 @@
     <ClInclude Include="ScriptEngine.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="Concept.txt" />
     <Text Include="Scripting.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

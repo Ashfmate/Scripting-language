@@ -84,7 +84,7 @@ const std::expected<void, ScriptError> ScriptEngine::Parser::pick_statment(const
 	line_stream >> cur_word;
 	line_stream.seekg(0, std::ios::beg);
 	cur_word = to_lower(cur_word);
-	if (auto it = find_key_word(line); it != keywords.value().end());
+	if (is_key_word(cur_word));
 	else if (/*isdigit(cur_word.front()) && */std::ranges::all_of(cur_word, isalnum))
 		create_var(line_stream);
 	else
@@ -132,9 +132,9 @@ const std::expected<std::string, ScriptError> ScriptEngine::Parser::parse_quotes
 	return first_word;
 }
 
-const std::vector<std::string>::iterator ScriptEngine::Parser::find_key_word(const std::string word)
+const bool ScriptEngine::Parser::is_key_word(const std::string word) const
 {
-	return std::ranges::find(*keywords, word);
+	return std::ranges::contains(*keywords, word);
 }
 
 const std::expected<DataType, ScriptError> ScriptEngine::Parser::parse_type(const std::string word) const
