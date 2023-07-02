@@ -93,6 +93,11 @@ public:
 public:
 	// @param path Defines the path of the file to interpret
 	ScriptEngine(std::string path);
+	// The function that starts the engine
+	ScriptError start();
+#pragma region Variable_Changing_Functions
+
+private:
 	// Sets a variable within the engine
 	// @param name The name of the variable in question
 	// @param value The type of value to be set (bool , int , double , string , std::nullopt gives null )
@@ -129,14 +134,19 @@ public:
 	const Type get_type(const DataType val) const;
 	// Helpful function for when to check if the variable exists or not
 	const bool is_exist(const std::string& name) const;
-	// The function that starts the engine
-	ScriptError start();
+
+#pragma endregion
+
+#pragma region Engine_Member_Variables
+
 private:
 	// Holds the variables in the engine, its key is string indicating the name of the variable and its value is a vector of DataType
 	// which indicates the range of values that the variable name may have
 	std::unordered_map<std::string, std::vector<DataType>> variables;
 	// The path to the file
 	std::string path;
+
+#pragma endregion
 private:
 	// A class specialized in parsing through the file to come up with the executable code (coming soon where it returns a code struct)
 	class Parser
@@ -147,6 +157,9 @@ private:
 		// Starts the parser, idk made it with an operator because I am cool like that
 		// @param path The path to the file to execute
 		ScriptError operator()(std::string path);
+
+#pragma region Worker_Functions
+
 	private:
 		// Chooses which statement to do
 		// @param line The line of code to look a statement for
@@ -158,6 +171,11 @@ private:
 		const std::expected<std::unique_ptr<Code>, ScriptError> create_var(std::istringstream& line);
 		// Executes the instructions given in the code_lines
 		const ScriptError exec_code(const Code& code);
+
+#pragma endregion
+
+#pragma region Helper_Parser_Functions
+
 	private:
 		// Helper function that is used when there is string and we need the entire qoute of string
 		// @param first_word Used for simplicity, it should hold the first word of the quoted string it will also be used as the return
@@ -175,10 +193,17 @@ private:
 		// This helper function checks if a string is all numeric or not
 		// @param str The string of possibly numbers
 		const bool is_num(const std::string& str) const;
+
+#pragma endregion
+
+#pragma region Parser_Member_Function
+
 	private:
 		// Holds the collection of keywords
 		std::vector<Code> code_lines;
 		// The engine which is the outer class
 		ScriptEngine& eng;
 	};
+#pragma endregion
+
 };
