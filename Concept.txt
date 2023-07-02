@@ -36,3 +36,35 @@
 {  "else", "println",   "Sad" }
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
+
+
+	 if   hello equal "hello" println hello
+	 ^^   ^^^^^ ^^^^^ ^^^^^^^ ^^^^^^^ ^^^^^
+keyword |	  expression     |	  code
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+				code
+
+expression could be:
+		variable operator variable
+		variable operator constant
+		constant operator varaible
+		constant operator constant
+		boolean variable
+		boolean constant
+
+variables could be:
+		variable name (where the first element will be picked)
+		variable indexed (where the element indexed will be picked [0-index method])
+		function return (will be though of later lol)
+
+constants could be:
+		DataType values (True or False / integral values / decimal values / string / null)
+
+keywords could be:
+		A word reserved for a function
+		A word reserved for a DataType value (True or False / null)
+<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>
+When creating a variable we go
+
+[variable name] = val1 val2 val3		OR
+[variable name] = [variable name]

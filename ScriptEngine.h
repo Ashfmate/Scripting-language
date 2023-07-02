@@ -25,12 +25,15 @@ class ScriptError
 public:
 	enum Errors : int
 	{
+		No_Error,
 		Var_Not_Exist,
 		Out_Of_Range,
 		Type_Not_Supported,
 		Invalid_Statement,
 		Assign_Operator_Missing,
-		Missing_Quote
+		Missing_Quote,
+		Code_Missing_Name,
+		Code_Missing_Values
 	};
 public:
 	ScriptError() = default;
@@ -53,12 +56,24 @@ using DataType = std::optional<std::variant<bool, int, double, std::string>>;
 // This is a struct the defines what a code is
 struct Code
 {
-	std::optional<bool> expr;
+	enum Statement_Type
+	{
+		Var_Create,
+		Var_Set,
+		If,
+		Else_If,
+		Else,
+		While,
+		Iterate,
+		Print,
+		Println,
+		Function
+	};
 	std::vector<DataType> data_types;
-	std::optional<std::string> var_name;
-	std::optional<size_t> idx;
-	std::optional<std::vector<std::string>> keywords;
-	std::unique_ptr<Code> inner_code;
+	std::optional<std::vector<DataType>> ret_val;
+	std::optional<std::string> name;
+	Statement_Type type;
+	std::vector<Code> inner_code;
 };
 
 
@@ -112,8 +127,10 @@ public:
 	// @param val The value in question
 	// @return Returns an enum to indicate the value's data type
 	const Type get_type(const DataType val) const;
+	// Helpful function for when to check if the variable exists or not
+	const bool is_exist(const std::string& name) const;
 	// The function that starts the engine
-	void start();
+	ScriptError start();
 private:
 	// Holds the variables in the engine, its key is string indicating the name of the variable and its value is a vector of DataType
 	// which indicates the range of values that the variable name may have
@@ -129,16 +146,18 @@ private:
 		Parser(ScriptEngine& eng);
 		// Starts the parser, idk made it with an operator because I am cool like that
 		// @param path The path to the file to execute
-		void operator()(std::string path);
+		ScriptError operator()(std::string path);
 	private:
 		// Chooses which statement to do
 		// @param line The line of code to look a statement for
-		// @return Returns either nothing or an error
-		const std::expected<void, ScriptError> pick_statment(const std::string line);
+		// @return Returns either the code picked or an error
+		const std::expected<std::unique_ptr<Code>, ScriptError> pick_statment(const std::string line);
 		// The creating a variable statment
 		// @param line The line that has the variable's name, the assign operator and the list of variables
-		// @return Returns either nothing or an error
-		const std::expected<void, ScriptError> create_var(std::istringstream& line);
+		// @return Returns either the code done or an error
+		const std::expected<std::unique_ptr<Code>, ScriptError> create_var(std::istringstream& line);
+		// Executes the instructions given in the code_lines
+		const ScriptError exec_code(const Code& code);
 	private:
 		// Helper function that is used when there is string and we need the entire qoute of string
 		// @param first_word Used for simplicity, it should hold the first word of the quoted string it will also be used as the return
@@ -158,7 +177,7 @@ private:
 		const bool is_num(const std::string& str) const;
 	private:
 		// Holds the collection of keywords
-		std::optional<std::vector<std::string>> keywords;
+		std::vector<Code> code_lines;
 		// The engine which is the outer class
 		ScriptEngine& eng;
 	};
