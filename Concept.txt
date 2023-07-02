@@ -68,3 +68,7 @@ When creating a variable we go
 
 [variable name] = val1 val2 val3		OR
 [variable name] = [variable name]
+<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>
+When creating a print statement we go
+print(ln) val1 val2 val3
+print(ln) [variable name]
