@@ -54,11 +54,6 @@ const ScriptEngine::Type ScriptEngine::get_type(const DataType val) const
 	return Null;
 }
 
-const bool ScriptEngine::is_exist(const std::string& name) const
-{
-	return variables.contains(name);
-}
-
 ScriptError ScriptEngine::start()
 {
 	return Parser(*this)(path);
@@ -66,7 +61,7 @@ ScriptError ScriptEngine::start()
 
 ScriptEngine::Parser::Parser(ScriptEngine& eng) : eng(eng)
 {
-	
+	key_words.append_range(std::vector<std::string>({"if","elf","else","print","println"}));
 }
 
 ScriptError ScriptEngine::Parser::operator()(std::string path)
@@ -75,9 +70,9 @@ ScriptError ScriptEngine::Parser::operator()(std::string path)
 	std::string line;
 	while (std::getline(file, line, '\n'))
 	{
-		if (line == "exit")
-			break;
-		if (auto& cur = pick_statment(line); cur)
+		if (line.empty()) continue;
+		else if (line == "exit") break;
+		else if (auto& cur = pick_statment(line); cur)
 		{
 			code_lines.emplace_back(*cur.value());
 		}
@@ -94,9 +89,14 @@ const std::expected<std::unique_ptr<Code>, ScriptError> ScriptEngine::Parser::pi
 	std::istringstream line_stream(line);
 	std::string cur_word;
 	line_stream >> cur_word;
-	line_stream.seekg(0, std::ios::beg);
 	cur_word = to_lower(cur_word);
-	if (is_key_word(cur_word));
+	if (is_key_word(cur_word))
+	{
+		if (cur_word == "print")
+			return print(line_stream, false);
+		else if (cur_word == "println")
+			return print(line_stream, true);
+	}
 	else if (/*isdigit(cur_word.front()) && */std::ranges::all_of(cur_word, isalnum))
 		return create_var(line_stream);
 	else
@@ -105,51 +105,41 @@ const std::expected<std::unique_ptr<Code>, ScriptError> ScriptEngine::Parser::pi
 
 const std::expected<std::unique_ptr<Code>, ScriptError> ScriptEngine::Parser::create_var(std::istringstream& line)
 {
+	line.seekg(0, std::ios::beg);
 	// The resulting code
-	std::unique_ptr<Code> cur = std::make_unique<Code>();
+	std::unique_ptr<Code> pCode = std::make_unique<Code>();
 	// Getting the name of the variable
 	std::string var_name;
 	line >> var_name;
-	cur->name.emplace(var_name);
+	pCode->name.emplace(var_name);
 	// If the variable already exists, then set it to Var_Set which indicates setting, else Var_Create indicates initialization
-	cur->type = eng.is_exist(cur->name.value()) ? Code::Var_Set : Code::Var_Create;
+	pCode->type = find_variable(pCode->name.value()) != code_lines.end() ? Code::Var_Set : Code::Var_Create;
 	// Parses throught the values to assign
 	std::string cur_val;
-	std::string quote_val;
 	if (line >> cur_val; cur_val != "=")
 		return std::unexpected(ScriptError("There is no assign operator (=)", ScriptError::Assign_Operator_Missing));
-	std::vector<DataType> var_col;
-	while (line >> cur_val)
-	{
-		// If the user inputs an unnecessary comma
-		if (cur_val == ",") continue;
-		// If the user inputs a string
-		if (cur_val.front() == '\"')
-		{
-			auto res = parse_quotes(cur_val, line);
-			if (!res) return std::unexpected(res.error());
-			cur_val = res.value();
-		}
-		// If the user inputs a comma right next to the value (also unnecessary)
-		if (cur_val.back() == ',') cur_val.pop_back();
-		// If the user inputs an existing variable
-		if (eng.is_exist(cur_val))
-		{
-			var_col.append_range(eng.get_var_range(cur_val).value());
-		}
-		// This will check if the value entered is reckognizable
-		else
-		{
-			auto& val = parse_type(to_lower(cur_val));
-			if (!val) return std::unexpected(val.error());
-			var_col.emplace_back(val.value());
-		}
-	}
-	// Assigns the values as (data_types) which will be used as the values
-	cur->data_types = var_col;
+
+	if (auto& ans = parse_values(line); !ans)
+		return std::unexpected(ans.error());
+	else
+		pCode->data_types = ans.value();
 	// Var_Create: name (name of the variable) data_types (the values to set to)
 	// Var_Set: name (name of the variable) data_types (the values to set to)
-	return std::move(cur);
+	return std::move(pCode);
+}
+
+const std::expected<std::unique_ptr<Code>, ScriptError> ScriptEngine::Parser::print(std::istringstream& line, bool new_line)
+{
+	std::unique_ptr<Code> pCode = std::make_unique<Code>();
+	pCode->type = Code::Print;
+	if (new_line)
+		pCode->type = Code::Println;
+	if (auto& ans = parse_values(line); !ans)
+		return std::unexpected(ans.error());
+	else
+		pCode->data_types = ans.value();
+	// Print : data_types (the values to set to)
+	return std::move(pCode);
 }
 
 const ScriptError ScriptEngine::Parser::exec_code(const Code& code)
@@ -169,6 +159,80 @@ const ScriptError ScriptEngine::Parser::exec_code(const Code& code)
 	{
 		for (int i = 0; i < code.data_types.size(); ++i)
 			eng.set_var(code.name.value(), code.data_types[i], i);
+	}
+		break;
+	case Code::Print:
+	{
+		std::string out;
+		bool given_val = false;
+		for (auto& elem : code.data_types)
+		{
+			given_val = true;
+			switch (eng.get_type(elem))
+			{
+			case ScriptEngine::Boolean:
+				out += (std::get<bool>(elem.value()) ? " True ," : " False ,");
+				break;
+			case ScriptEngine::Int:
+				out += " " + std::to_string(std::get<int>(elem.value())) + " ,";
+				break;
+			case ScriptEngine::Double:
+				out += " " + std::to_string(std::get<double>(elem.value())) + " ,";
+				break;
+			case ScriptEngine::String:
+				out += " \"" + std::get<std::string>(elem.value()) + "\" ,";
+				break;
+			case ScriptEngine::Null:
+				out += " Null ,";
+				break;
+			default:
+				break;
+			}
+		}
+		if (given_val)
+		{
+			out.pop_back();
+			out.front() = '[';
+			out.back() = ']';
+		}
+		fmt::print("{}", out);
+	}
+		break;
+	case Code::Println:
+	{
+		std::string out;
+		bool given_val = false;
+		for (auto& elem : code.data_types)
+		{
+			given_val = true;
+			switch (eng.get_type(elem))
+			{
+			case ScriptEngine::Boolean:
+				out += (std::get<bool>(elem.value()) ? " True ," : " False ,");
+				break;
+			case ScriptEngine::Int:
+				out += " " + std::to_string(std::get<int>(elem.value())) + " ,";
+				break;
+			case ScriptEngine::Double:
+				out += " " + std::to_string(std::get<double>(elem.value())) + " ,";
+				break;
+			case ScriptEngine::String:
+				out += " \"" + std::get<std::string>(elem.value()) + "\" ,";
+				break;
+			case ScriptEngine::Null:
+				out += " Null ,";
+				break;
+			default:
+				break;
+			}
+		}
+		if (given_val)
+		{
+			out.pop_back();
+			out.front() = '[';
+			out.back() = ']';
+		}
+		fmt::print("{}\n", out);
 	}
 		break;
 	default:
@@ -194,7 +258,7 @@ const std::expected<std::string, ScriptError> ScriptEngine::Parser::parse_quotes
 
 const bool ScriptEngine::Parser::is_key_word(const std::string word) const
 {
-	return false; // TODO for now
+	return std::ranges::contains(key_words, word);
 }
 
 const std::expected<DataType, ScriptError> ScriptEngine::Parser::parse_type(const std::string word) const
@@ -239,6 +303,44 @@ const bool ScriptEngine::Parser::is_num(const std::string& str) const
 	}
 
 	return true;
+}
+
+const std::expected<std::vector<DataType>, ScriptError> ScriptEngine::Parser::parse_values(std::istringstream& line)
+{
+	std::string cur_val;
+	std::vector<DataType> var_col;
+	while (line >> cur_val)
+	{
+		// If the user inputs an unnecessary comma
+		if (cur_val == ",") continue;
+		// If the user inputs a string
+		if (cur_val.front() == '\"')
+		{
+			auto res = parse_quotes(cur_val, line);
+			if (!res) return std::unexpected(res.error());
+			cur_val = res.value();
+		}
+		// If the user inputs a comma right next to the value (also unnecessary)
+		if (cur_val.back() == ',') cur_val.pop_back();
+		// If the user inputs an existing variable
+		if (auto it = find_variable(cur_val); it != code_lines.end())
+		{
+			var_col.append_range(it->data_types);
+		}
+		// This will check if the value entered is reckognizable
+		else
+		{
+			auto& val = parse_type(to_lower(cur_val));
+			if (!val) return std::unexpected(val.error());
+			var_col.emplace_back(val.value());
+		}
+	}
+	return var_col;
+}
+
+const std::vector<Code>::iterator ScriptEngine::Parser::find_variable(const std::string& name)
+{
+	return std::ranges::find_if(code_lines, [&name](const Code& code) { return code.name == name; });
 }
 
 std::string to_lower(std::string word)

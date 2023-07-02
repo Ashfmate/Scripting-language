@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <memory>
 #include <format>
+#include <fmt\core.h>
+#include <fmt\ranges.h>
 
 #pragma endregion
 
@@ -132,8 +134,6 @@ private:
 	// @param val The value in question
 	// @return Returns an enum to indicate the value's data type
 	const Type get_type(const DataType val) const;
-	// Helpful function for when to check if the variable exists or not
-	const bool is_exist(const std::string& name) const;
 
 #pragma endregion
 
@@ -169,6 +169,7 @@ private:
 		// @param line The line that has the variable's name, the assign operator and the list of variables
 		// @return Returns either the code done or an error
 		const std::expected<std::unique_ptr<Code>, ScriptError> create_var(std::istringstream& line);
+		const std::expected<std::unique_ptr<Code>, ScriptError> print(std::istringstream& line, bool new_line);
 		// Executes the instructions given in the code_lines
 		const ScriptError exec_code(const Code& code);
 
@@ -193,6 +194,10 @@ private:
 		// This helper function checks if a string is all numeric or not
 		// @param str The string of possibly numbers
 		const bool is_num(const std::string& str) const;
+		// This helper function parses through the variables, constants and variables to give a vector of these values
+		const std::expected<std::vector<DataType>, ScriptError> parse_values(std::istringstream& line);
+		// Helpful function for when to check if the variable exists or not
+		const std::vector<Code>::iterator find_variable(const std::string& name);
 
 #pragma endregion
 
@@ -201,6 +206,8 @@ private:
 	private:
 		// Holds the collection of keywords
 		std::vector<Code> code_lines;
+		// Holds the keywords for the special functions (or for normal functions, but later)
+		std::vector<std::string> key_words;
 		// The engine which is the outer class
 		ScriptEngine& eng;
 	};
