@@ -5,7 +5,6 @@
 int main()
 {
 	// TODO
-	// *) Make it so that it is possible to set variables
 	// *) Add if statment
 	// *) Add while and iterate loops
 	// *) Add functions

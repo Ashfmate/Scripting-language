@@ -11,6 +11,7 @@ enum Errors : int
 	Invalid_Statement,
 	Right_Square_Bracket_Missing,
 	Index_Not_Integral,
+	Index_Not_Positive,
 	Incomplete_Statement,
 	Assign_Operator_Missing,
 	Missing_Quote,
