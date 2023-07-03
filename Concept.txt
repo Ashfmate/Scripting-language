@@ -72,3 +72,10 @@ When creating a variable we go
 When creating a print statement we go
 print(ln) val1 val2 val3
 print(ln) [variable name]
+<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>
+When setting a variable we go
+
+[variable name]([[index]]) (at [index]) = val		OR
+[variable name] = val1 val2 val3
+
+// First one only accounts for one variable, second accounts for multiple

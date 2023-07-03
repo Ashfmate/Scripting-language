@@ -128,12 +128,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Parser.cpp" />
     <ClCompile Include="ScriptEngine.cpp" />
     <ClCompile Include="Scripting other languages.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Parser.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptEngine.h" />
+    <ClInclude Include="ScriptError.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Concept.txt" />

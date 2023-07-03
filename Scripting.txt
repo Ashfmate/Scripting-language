@@ -3,7 +3,7 @@ var2 = null null null 42
 Ahmed = "Ahmed Essam Alkhateeb" 21 3 "Sana'a University" null
 Ayham = "Ayham Alakhaly" 21 3 "Sana'a University" "Ibrahim Alhitary"
 
-print var1
+println var1
 println var2
 println Ahmed
 println Ayham

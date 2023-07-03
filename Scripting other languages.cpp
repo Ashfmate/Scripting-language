@@ -11,9 +11,9 @@ int main()
 	// *) Add functions
 	// *) Add Classes (The hardest of them all)
 	// *) Make a var class in code that will allow for any class to be accepted
-	ScriptEngine eng("Scripting.txt");
-	eng.start();
-
+	ScriptEngine eng;
+	eng.start("Scripting.txt");
+	eng.exec();
 	system("pause");
 	return 0;
 }
