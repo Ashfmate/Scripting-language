@@ -29,6 +29,7 @@ struct Code
 	enum Statement_Type
 	{
 		Empty_Statement,
+		Var_Ret,
 		Var_Create,
 		Var_Set,
 		If,
@@ -71,6 +72,4 @@ public:
 	const Type get_type(const DataType val) const;
 private:
 	vector<Code> code_lines;
-private:
-
 };

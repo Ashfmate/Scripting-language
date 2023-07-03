@@ -2,9 +2,11 @@ var1 = null 2.4 1991 "THIS GIRL IS ON FIREEEEE"
 var2 = null null null 42
 Ahmed = "Ahmed Essam Alkhateeb" 21 3 "Sana'a University" null
 Ayham = "Ayham Alakhaly" 21 3 "Sana'a University" "Ibrahim Alhitary"
-
+Ayham[3] = 100
+Ahmed at 2 = "No way"
+var2 = "Values" "Are" "Not" "Toys" "Ok?"
 println var1
 println var2
-println Ahmed
-println Ayham
+println Ahmed at 1
+println Ayham at 2
 println "Why are we here?" 1 true false null 1.0
