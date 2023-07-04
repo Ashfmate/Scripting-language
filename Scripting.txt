@@ -8,5 +8,5 @@ var2 = "Values" "Are" "Not" "Toys" "Ok?"
 println var1
 println var2
 println Ahmed at 1
-println Ayham at 2
+println Ayham at
 println "Why are we here?" 1 true false null 1.0

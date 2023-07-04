@@ -102,8 +102,10 @@ const std::expected<std::unique_ptr<Code>, ScriptError> Parser::set_var(vector<s
 	if (auto it = std::ranges::find(tokens, "at"); it != tokens.end())
 	{		
 		++it;
-		if (!str_to_int(*it,index))
+		if (auto ans = str_to_int(*it); !ans.first)
 			return std::unexpected(ScriptError("Index must be an integer", Index_Not_Integral));
+		else
+			index = ans.second;
 	}
 
 	auto& var = find_variable(name);
@@ -145,8 +147,10 @@ const std::expected<std::unique_ptr<Code>, ScriptError> Parser::ret_var(vector<s
 	string name = tokens[0];
 	if (tokens.size() > 1)
 	{
-		if (!str_to_int(tokens.back(), index))
-			std::unexpected(ScriptError("Index must be an integer", Index_Not_Integral));
+		if (auto res = str_to_int(tokens.back()); !res.first)
+			return std::unexpected(ScriptError("Index must be an integer", Index_Not_Integral));
+		else
+			index = res.second;
 	}
 
 	auto& it = find_variable(name);
@@ -306,32 +310,43 @@ const std::expected<std::pair<vector<Code>::iterator,std::optional<int>>, Script
 
 const std::expected<vector<string>, ScriptError> Parser::stream_to_vector_converter(const std::string& line) const
 {
-	std::istringstream line_stream(line);
-	string token;
-	vector<string> res;
-	string full_quote;
-	bool in_quote = false;
-	while (line_stream >> token)
+	void(*emplace)(vector<string>&, string&) = [](vector<string>& res, string& token)
 	{
-		in_quote = in_quote || std::ranges::contains(token, '\"');
-		if (in_quote)
+		if (!token.empty())
+			res.emplace_back(std::move(token));
+	};
+	vector<string> res;
+	size_t estimate_size = std::ranges::count_if(line, [](const char ch) { return ch == ' ' || ch == '=' || ch == '\"' || ch == ','; });
+	res.reserve(estimate_size);
+	string token;
+	bool in_quote = false;
+	for (char ch : line)
+	{
+		if (ch == '\"')
 		{
-			if (token.back() == '\"')
-			{
-				in_quote = false;
-				full_quote += token;
-				res.emplace_back(full_quote);
-				full_quote.clear();
-			}
-			else
-			{
-				full_quote += token + " ";
-			}
+			in_quote != in_quote;
+			token.push_back(ch);
+			if (!in_quote)
+				emplace(res, token);
+		}
+		else if (in_quote)
+			token.push_back(ch);
+		else if (ch == ' ' || ch == ',')
+			emplace(res, token);
+		else if (ch == '=')
+		{
+			emplace(res, token);
+			token.push_back(ch);
+			emplace(res, token);
 		}
 		else
-			res.emplace_back(token);
+			token.push_back(ch);
 	}
 	if (in_quote) return std::unexpected(ScriptError("There is no closing quotes", Missing_Quote));
+
+	if (!token.empty())
+		emplace(res, token);
+
 	return res;
 }
 
@@ -389,12 +404,16 @@ const std::expected<Code::Statement_Type, ScriptError> Parser::find_statment(con
 	}
 }
 
-bool Parser::str_to_int(const string& num, int& val) const
+std::pair<bool, int> Parser::str_to_int(const string& num) const
 {
-	if (!is_num(num) || std::ranges::count(num, '.') == 1)
-		return false;
-	val = std::stoi(num);
-	return true;
+	try
+	{
+		return { true , std::stoi(num) };
+	}
+	catch (...)
+	{
+		return { false , {} };
+	}
 }
 
 string to_lower(string word)

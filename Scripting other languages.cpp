@@ -11,8 +11,9 @@ int main()
 	// *) Add Classes (The hardest of them all)
 	// *) Make a var class in code that will allow for any class to be accepted
 	ScriptEngine eng;
-	eng.start("Scripting.txt");
+	auto res = eng.start("Scripting.txt");
 	eng.exec();
+	fmt::print("\n\n\n\n{} : Error Code [{}]\n", res.what(), res.which());
 	system("pause");
 	return 0;
 }
