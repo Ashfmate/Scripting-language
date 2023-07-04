@@ -30,19 +30,19 @@ private:
 	/// </summary>
 	/// <param name="tokens"> the collection of tokens that make up the variable creation statement </param>
 	/// <returns> returns a unique pointer to the code generated or an error </returns>
-	const std::expected<std::unique_ptr<Code>, ScriptError> create_var(vector<string> tokens);
+	const std::expected<std::unique_ptr<Code>, ScriptError> create_var(const vector<string> tokens);
 	/// <summary>
 	/// Sets a variable
 	/// </summary>
 	/// <param name="tokens"> the collection of tokens that make up the variable setting statement </param>
 	/// <returns> returns a unique pointer to the code generated or an error </returns>
-	const std::expected<std::unique_ptr<Code>, ScriptError> set_var(vector<string> tokens);
+	const std::expected<std::unique_ptr<Code>, ScriptError> set_var(const vector<string> tokens);
 	/// <summary>
 	/// Returns a variable
 	/// </summary>
 	/// <param name="tokens"> The structure of returning a variable </param>
 	/// <returns> Either the code built up for returning a variable or an error </returns>
-	const std::expected<std::unique_ptr<Code>, ScriptError> ret_var(vector<string> tokens);
+	const std::expected<std::unique_ptr<Code>, ScriptError> ret_var(const vector<string> tokens);
 	/// <summary>
 	/// Prints a variable, constant or a (later) result of an operation
 	/// </summary>
@@ -77,7 +77,7 @@ private:
 	/// </summary>
 	/// <param name="tokens"> The collection of values to look for each one's value or return type</param>
 	/// <returns> Either the collection of values or an error</returns>
-	const std::expected<vector<DataType>, ScriptError> parse_values(vector<string>& tokens);
+	const std::expected<vector<DataType>, ScriptError> parse_values(const vector<string>& tokens);
 	/// <summary>
 	/// Helpful function for when to check if the variable exists or not
 	/// </summary>

@@ -77,7 +77,7 @@ const std::expected<std::unique_ptr<Code>, ScriptError> Parser::pick_statment(co
 		return std::unexpected(ScriptError("The line { " + fmt::format("{}", tokens) + " } is not a valid statement", Invalid_Statement));
 }
 
-const std::expected<std::unique_ptr<Code>, ScriptError> Parser::create_var(vector<string> tokens)
+const std::expected<std::unique_ptr<Code>, ScriptError> Parser::create_var(const vector<string> tokens)
 {
 	auto pCode = std::make_unique<Code>();
 	pCode->name = tokens[0];
@@ -94,7 +94,7 @@ const std::expected<std::unique_ptr<Code>, ScriptError> Parser::create_var(vecto
 	return std::move(pCode);
 }
 
-const std::expected<std::unique_ptr<Code>, ScriptError> Parser::set_var(vector<string> tokens)
+const std::expected<std::unique_ptr<Code>, ScriptError> Parser::set_var(const vector<string> tokens)
 {
 	auto pCode = std::make_unique<Code>();
 	int index = 0;
@@ -140,7 +140,7 @@ const std::expected<std::unique_ptr<Code>, ScriptError> Parser::set_var(vector<s
 	return std::move(pCode);
 }
 
-const std::expected<std::unique_ptr<Code>, ScriptError> Parser::ret_var(vector<string> tokens)
+const std::expected<std::unique_ptr<Code>, ScriptError> Parser::ret_var(const vector<string> tokens)
 {
 	auto pCode = std::make_unique<Code>();
 	int index = -1;
@@ -238,16 +238,12 @@ const bool Parser::is_num(const string& str) const
 	return true;
 }
 
-const std::expected<vector<DataType>, ScriptError> Parser::parse_values(vector<string>& tokens)
+const std::expected<vector<DataType>, ScriptError> Parser::parse_values(const vector<string>& tokens)
 {
 	vector<DataType> var_col;
 	for (size_t i = 0; i < tokens.size(); ++i)
 	{
 		auto& cur_val = tokens[i];
-		// If the user inputs an unnecessary comma
-		if (cur_val == ",") continue;
-		// If the user inputs a comma right next to the value (also unnecessary)
-		if (cur_val.back() == ',') cur_val.pop_back();
 		// If the user inputs an existing variable
 		if (auto it = find_variable(cur_val); it && it.value().first != code_lines.end())
 		{
@@ -324,7 +320,7 @@ const std::expected<vector<string>, ScriptError> Parser::stream_to_vector_conver
 	{
 		if (ch == '\"')
 		{
-			in_quote != in_quote;
+			in_quote = !in_quote;
 			token.push_back(ch);
 			if (!in_quote)
 				emplace(res, token);
