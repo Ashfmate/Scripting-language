@@ -1,5 +1,8 @@
 #pragma once
 #include <string>
+#include <expected>
+
+#define expect(type) std::expected<type , ScriptError>
 
 enum Errors : int
 {
