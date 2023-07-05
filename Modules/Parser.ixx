@@ -1,9 +1,9 @@
-export module Parser;
-
 #include <sstream>
 #include <fstream>
-#include <algorithm>;
-#include <ranges>;
+#include <iostream>
+#include <algorithm>
+#include <ranges>
+export module Parser;
 
 import <memory>;
 import <optional>;
@@ -33,23 +33,6 @@ namespace
 	/// <returns> Returns a vector of tokens </returns>
 	const err::Expect<vector<string>> parseLine(const string& line);
 	/// <summary>
-	/// Helper function to check if a variable exists or not.
-	/// If the string has indexing braces then it will return the index too as an optional
-	/// </summary>
-	/// <param name="var"> 
-	/// The name of the variable in question, could also have index braces and will still identify the variable
-	/// </param>
-	/// <returns> 
-	/// Whether the boolean exists or not as well as the index if provided 
-	/// </returns>
-	const err::Expect<std::pair<bool, std::optional<int>>> findVariable(string var);
-	/// <summary>
-	/// Gets the type of value from a string (MUST BE USED AFTER findVariable, otherwise will return Undefined
-	/// </summary>
-	/// <param name="val"> The string to look through </param>
-	/// <returns> The Type of value that it is </returns>
-	const err::Expect<code::Type> getType(const string& val);
-	/// <summary>
 	/// Helper function for groupStatements Which goes through the tokens and creates the individual Statements
 	/// </summary>
 	/// <param name="tokens"> The tokens to go through </param>
@@ -65,56 +48,37 @@ namespace
 	/// </returns>
 	const err::Expect<CodeLine> groupStatements(const vector<string>& tokens);
 	/// <summary>
-	/// Converts an input stream (file or std::cin) into a string
+	/// Converts an std::cin into a string
 	/// </summary>
 	/// <param name="input"> The input stream to be gotten </param>
 	/// <returns> A string representation of the input stream </returns>
-	const string fileToString(std::istream& input);
+	const string streamToString(std::istream& input);
+	/// <summary>
+	/// Converts an std::cin into a 
+	/// </summary>
+	/// <param name="input"> The input stream to be gotten </param>
+	/// <returns> A string representation of the input stream </returns>
+	const string streamToString(std::ifstream& input);
 	/// <summary>
 	/// Splits the string of multiple lines into multiple strings
 	/// </summary>
-	/// <param name="lines"> String that contains newline characters</param>
+	/// <param name="line_block"> String that contains newline characters</param>
 	/// <returns> An array of strings that are split by newlines </returns>
-	const vector<string> splitNewLine(const string& lines);
+	const vector<string> splitNewLine(const string& line_block);
+}
+
+export namespace parse
+{
 	/// <summary>
-	/// Groups The multiple lines of code after they have been checked and parsed through (TODO make another function that allows for console input)
+	/// Helper function to check if a variable exists or not.
+	/// If the string has indexing braces then it will return the index too as an optional
 	/// </summary>
-	/// <param name="path"> The path of the text file to use </param>
-	/// <returns> The block of code generated </returns>
-	const err::Expect<CodeBlock> groupLines(const string& path);
-
-	/////////////////////////////////////////////////////////////////////////////
-	/////						IMPLEMENTATION								/////
-	/////////////////////////////////////////////////////////////////////////////
-
-
-	const err::Expect<vector<string>> parseLine(const string& line)
-	{
-		vector<string> tokens;
-		tokens.reserve(utils::estimateSize(line, " \n;"));
-		string token;
-		bool in_quote = false;
-		for (char ch : line)
-		{
-			if (ch == '\"')
-			{
-				in_quote = !in_quote;
-				token.push_back(ch);
-				if (!in_quote)
-					utils::emplace(tokens, token);
-			}
-			else if (in_quote)
-				token.push_back(ch);
-			else if (ch == ' ')
-				utils::emplace(tokens, token);
-			else
-				token.push_back(ch);
-		}
-		if (in_quote) return std::unexpected(err::ErrorCode::Missing_Quote);
-		utils::emplace(tokens, token);
-		return std::move(tokens);
-	}
-
+	/// <param name="var"> 
+	/// The name of the variable in question, could also have index braces and will still identify the variable
+	/// </param>
+	/// <returns> 
+	/// Whether the boolean exists or not as well as the index if provided 
+	/// </returns>
 	const err::Expect<std::pair<bool, std::optional<int>>> findVariable(string var)
 	{
 		// Resulting variables
@@ -143,7 +107,61 @@ namespace
 		}
 		return std::pair<bool, std::optional<int>>{ is_found, index };
 	}
+	/// <summary>
+	/// Parses through the file input and produces tokens for code execution
+	/// </summary>
+	/// <param name="path"> The path of the text file to use </param>
+	/// <returns> The block of code generated </returns>
+	const err::Expect<CodeBlock> parseCode(const string& path)
+	{
+		std::ifstream file(path,std::ios::binary);
+		vector<string> lines =
+			std::move(splitNewLine(std::move(streamToString(file))));
 
+		CodeBlock block;
+		for (auto& line : lines)
+		{
+			if (auto line_text = parseLine(line))
+			{
+				if (auto code_line = groupStatements(line_text.value()))
+					block.emplace_back(code_line.value());
+				else
+					return std::unexpected(code_line.error());
+			}
+			else
+				return std::unexpected(line_text.error());
+		}
+		return block;
+	}
+	/// <summary>
+	/// Parses through the console input and produces tokens for code execution
+	/// </summary>
+	/// <returns></returns>
+	const err::Expect<CodeBlock> parseCode()
+	{
+		vector<string> lines =
+			std::move(splitNewLine(std::move(streamToString(std::cin))));
+
+		CodeBlock block;
+		for (auto& line : lines)
+		{
+			if (auto line_text = parseLine(line))
+			{
+				if (auto code_line = groupStatements(line_text.value()))
+					block.emplace_back(code_line.value());
+				else
+					return std::unexpected(code_line.error());
+			}
+			else
+				return std::unexpected(line_text.error());
+		}
+		return block;
+	}
+	/// <summary>
+	/// Gets the type of value from a string (MUST BE USED AFTER findVariable, otherwise will return Undefined
+	/// </summary>
+	/// <param name="val"> The string to look through </param>
+	/// <returns> The Type of value that it is </returns>
 	const err::Expect<code::Type> getType(const string& val)
 	{
 		if (val == "true" || val == "false")
@@ -158,6 +176,40 @@ namespace
 			return code::Type::String;
 		else
 			return std::unexpected(err::ErrorCode::Unsupported_Type);
+	}
+}
+
+namespace
+{
+	/////////////////////////////////////////////////////////////////////////////
+	/////						IMPLEMENTATION								/////
+	/////////////////////////////////////////////////////////////////////////////
+	
+	const err::Expect<vector<string>> parseLine(const string& line)
+	{
+		vector<string> tokens;
+		tokens.reserve(utils::estimateSize(line, " \n;"));
+		string token;
+		bool in_quote = false;
+		for (char ch : line)
+		{
+			if (ch == '\"')
+			{
+				in_quote = !in_quote;
+				token.push_back(ch);
+				if (!in_quote)
+					utils::emplace(tokens, token);
+			}
+			else if (in_quote)
+				token.push_back(ch);
+			else if (ch == ' ')
+				utils::emplace(tokens, token);
+			else
+				token.push_back(ch);
+		}
+		if (in_quote) return std::unexpected(err::ErrorCode::Missing_Quote);
+		utils::emplace(tokens, token);
+		return tokens;
 	}
 
 	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index)
@@ -181,7 +233,7 @@ namespace
 			type = code::StatementType::Println;
 		}
 		// If there was something wrong when looking for a variable
-		else if (auto var = findVariable(tokens[index]); !var)
+		else if (auto var = parse::findVariable(tokens[index]); !var)
 			return std::unexpected(var.error());
 		// If variable look up was successful
 		else if (!std::ranges::contains(key_words, tokens[index]))
@@ -205,9 +257,10 @@ namespace
 				return std::unexpected(err::ErrorCode::Values_Not_Exist);
 			while (++index < tokens.size())
 			{
-				auto var = findVariable(tokens[index]);
+				auto var = parse::findVariable(tokens[index]);
 				if (!var) return std::unexpected(var.error());
-				else if (auto data_type = getType(tokens[index]); var.value().first || data_type)
+				else if (auto data_type = parse::getType(tokens[index]);
+					var.value().first || data_type)
 					statement.emplace_back(tokens[index]);
 				else
 					return std::unexpected(data_type.error());
@@ -237,18 +290,33 @@ namespace
 		return code_line;
 	}
 
-	const string fileToString(std::istream& input)
+	const string streamToString(std::istream& input)
 	{
-		
+		string res;
+		while (input)
+		{
+			auto ch = input.get();
+			if (ch != '\\')
+				res.push_back(input.get());
+			else break;
+		}
+		return res;
 	}
 
-	const vector<string> splitNewLine(const string& lines)
+	const string streamToString(std::ifstream& input)
 	{
-		return vector<string>();
+		std::stringstream sstream;
+		sstream << input.rdbuf();
+		return sstream.str();
 	}
 
-	const err::Expect<CodeBlock> groupLines(const string& path)
+	const vector<string> splitNewLine(const string& line_block)
 	{
-		return err::Expect<CodeBlock>();
+		vector<string> lines;
+		lines.reserve(utils::estimateSize(line_block, "\n"));
+		for (auto view : line_block | std::views::split('\n'))
+			lines.emplace_back(std::ranges::to<std::string>(view));
+		return lines;
 	}
 }
+
