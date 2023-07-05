@@ -38,13 +38,6 @@ namespace
 	/// </returns>
 	const err::Expect<CodeLine> groupStatements(const vector<string>& tokens);
 	/// <summary>
-	/// Helper function for groupStatements Which goes through the tokens and creates the individual Statements
-	/// </summary>
-	/// <param name="tokens"> The tokens to go through </param>
-	/// <param name="index"> There to modify the groupStatement function index </param>
-	/// <returns> Individual Statements </returns>
-	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index);
-	/// <summary>
 	/// Helper function to check if a variable exists or not.
 	/// If the string has indexing braces then it will return the index too as an optional
 	/// </summary>
@@ -61,6 +54,13 @@ namespace
 	/// <param name="val"> The string to look through </param>
 	/// <returns> The Type of value that it is </returns>
 	const err::Expect<code::Type> getType(const string& val);
+	/// <summary>
+	/// Helper function for groupStatements Which goes through the tokens and creates the individual Statements
+	/// </summary>
+	/// <param name="tokens"> The tokens to go through </param>
+	/// <param name="index"> There to modify the groupStatement function index </param>
+	/// <returns> Individual Statements </returns>
+	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index);
 	/// <summary>
 	/// Converts an input stream (file or std::cin) into a string
 	/// </summary>
@@ -83,4 +83,6 @@ namespace
 	/////////////////////////////////////////////////////////////////////////////
 	/////						IMPLEMENTATION								/////
 	/////////////////////////////////////////////////////////////////////////////
+
+
 }
