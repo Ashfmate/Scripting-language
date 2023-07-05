@@ -132,14 +132,10 @@
     <ClCompile Include="Modules\Error.ixx" />
     <ClCompile Include="Modules\Parser.ixx" />
     <ClCompile Include="Modules\Utils.ixx" />
-    <ClCompile Include="ScriptEngine.cpp" />
     <ClCompile Include="Scripting other languages.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Script.h" />
-    <ClInclude Include="ScriptEngine.h" />
-    <ClInclude Include="ScriptError.h" />
-    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Concept.txt" />

@@ -33,6 +33,18 @@ namespace
 	/// <returns> Returns a vector of tokens </returns>
 	const err::Expect<vector<string>> parseLine(const string& line);
 	/// <summary>
+	/// Helper function that loops through the values and fills the statement argument
+	/// </summary>
+	/// <param name="statement"> The built up statement </param>
+	/// <param name="index"> The index to the token </param>
+	const err::Expect<void> loopValues(const vector<string> tokens, const vector<string>& statement, size_t& index);
+	/// <summary>
+	/// Checks if the variable is alpha numeric
+	/// </summary>
+	/// <param name="var"> The variable in question </param>
+	/// <returns> whether the variable is alpha numeric</returns>
+	const bool checkAlNum(const string& var);
+	/// <summary>
 	/// Helper function for groupStatements Which goes through the tokens and creates the individual Statements
 	/// </summary>
 	/// <param name="tokens"> The tokens to go through </param>
@@ -114,7 +126,7 @@ export namespace parse
 	/// <returns> The block of code generated </returns>
 	const err::Expect<CodeBlock> parseCode(const string& path)
 	{
-		std::ifstream file(path,std::ios::binary);
+		std::ifstream file(path);
 		vector<string> lines =
 			std::move(splitNewLine(std::move(streamToString(file))));
 
@@ -212,14 +224,35 @@ namespace
 		return tokens;
 	}
 
+	const err::Expect<void> loopValues(const vector<string> tokens, vector<string>& statement, size_t& index)
+	{
+		while (index + 1 < tokens.size())
+		{
+			++index;
+			auto var = parse::findVariable(tokens[index]);
+			if (!var) return std::unexpected(var.error());
+			else if (auto type = parse::getType(tokens[index]);
+				var.value().first || type)
+				statement.emplace_back(tokens[index]);
+			else
+				return std::unexpected(type.error());
+		}
+	}
+
+	const bool checkAlNum(const string& var)
+	{
+		return std::none_of(var.begin(), var.end(), std::isalnum);
+	}
+
 	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index)
 	{
 		// This error should not happen but if it does, it will be handled
-		if (tokens.empty())
+		if (tokens.size() - index == 0)
 			return std::unexpected(err::ErrorCode::Empty_Statement);
 		// The result variables
 		vector<string> statement{};
 		code::StatementType type = code::StatementType::Empty_Statement;
+		auto var = parse::findVariable(tokens[index]);
 		// If the user inputted "print"
 		if (tokens[index] == "print")
 		{
@@ -233,17 +266,22 @@ namespace
 			type = code::StatementType::Println;
 		}
 		// If there was something wrong when looking for a variable
-		else if (auto var = parse::findVariable(tokens[index]); !var)
+		else if (!var)
 			return std::unexpected(var.error());
 		// If variable look up was successful
-		else if (!std::ranges::contains(key_words, tokens[index]))
+		else if (std::ranges::contains(key_words, tokens[index]));
+		// If the value is not a variable and so no need to check assignment and other stuff
+		else if (auto var_type = parse::getType(tokens[index]))
 		{
-			std::string new_var;
-			if (!var.value().first)
-				new_var = tokens[index];
-			if (!var.value().first && 
-				std::ranges::all_of(tokens[index],[](const char ch) 
-				{ return std::isalnum(ch); }))
+			if (auto res = loopValues(tokens, statement, --index); !res)
+				return std::unexpected(res.error());
+			type = code::StatementType::Arg_Col;
+		}
+		else
+		{
+			// The value is a variable
+			statement.emplace_back(tokens[index]);
+			if (checkAlNum(tokens[index]))
 				return std::unexpected(err::ErrorCode::Var_Not_AlphaNumeric);
 
 			if (tokens.size() - index == 1)
@@ -251,26 +289,23 @@ namespace
 				statement.emplace_back(tokens[index]);
 				type = code::StatementType::Var_Ret;
 			}
-			else if (tokens[++index] != "=")
-				return std::unexpected(err::ErrorCode::Assign_Not_Exist);
-			else if (tokens.size() - index == 1)
-				return std::unexpected(err::ErrorCode::Values_Not_Exist);
-			while (++index < tokens.size())
-			{
-				auto var = parse::findVariable(tokens[index]);
-				if (!var) return std::unexpected(var.error());
-				else if (auto data_type = parse::getType(tokens[index]);
-					var.value().first || data_type)
-					statement.emplace_back(tokens[index]);
-				else
-					return std::unexpected(data_type.error());
-			}
-			if (var.value().first)
-				code::StatementType::Var_Set;
 			else
 			{
-				code::StatementType::Var_Create;
-				var_names.emplace_back(new_var);
+				if (tokens[++index] != "=")
+					return std::unexpected(err::ErrorCode::Assign_Not_Exist);
+
+				else if (tokens.size() - index == 1)
+					return std::unexpected(err::ErrorCode::Values_Not_Exist);
+				statement.emplace_back(tokens[index]);
+
+				loopValues(tokens, statement, index);
+				if (var.value().first)
+					type = code::StatementType::Var_Set;
+				else
+				{
+					type = code::StatementType::Var_Create;
+					var_names.emplace_back(statement.front());
+				}
 			}
 		}
 		return std::pair<vector<string>, code::StatementType>

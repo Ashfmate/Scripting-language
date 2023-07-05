@@ -25,6 +25,7 @@ export namespace code
 	enum class StatementType
 	{
 		Empty_Statement,
+		Arg_Col,
 		Var_Ret,
 		Var_Create,
 		Var_Set,
