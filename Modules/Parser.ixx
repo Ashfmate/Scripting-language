@@ -1,13 +1,14 @@
 export module Parser;
 
+#include <sstream>
+#include <fstream>
+#include <algorithm>;
+#include <ranges>;
+
 import <memory>;
 import <optional>;
 import <vector>;
 import <variant>;
-import <algorithm>;
-import <ranges>;
-import <fstream>;
-import <sstream>;
 import <vector>;
 import <string>;
 import Error;
@@ -121,7 +122,7 @@ namespace
 		std::optional<int> index = std::nullopt;
 		// Checks if there is no indexing
 		if (auto l_brace = var.find('['); l_brace == string::npos)
-			is_found = std::find(var_names.begin(),var_names.end(), var) != var_names.end();
+			is_found = std::ranges::contains(var_names, var);
 		// There appears to be indexing
 		else
 		{
@@ -132,7 +133,7 @@ namespace
 				return std::unexpected(err::ErrorCode::Empty_Index_Brace);
 			index = utils::toInt(var.substr(l_brace + 1, r_brace - l_brace - 1));
 			var = var.substr(0, l_brace);
-			is_found = std::find(var_names.begin(), var_names.end(), var) != var_names.end();
+			is_found = std::ranges::contains(var_names, var);
 			if (!index)
 				return std::unexpected(err::ErrorCode::Non_Integral_Index);
 			else if (!is_found)
@@ -183,14 +184,14 @@ namespace
 		else if (auto var = findVariable(tokens[index]); !var)
 			return std::unexpected(var.error());
 		// If variable look up was successful
-		else if (std::find(key_words.begin(), key_words.end(), tokens[index]) == key_words.end())
+		else if (!std::ranges::contains(key_words, tokens[index]))
 		{
 			std::string new_var;
 			if (!var.value().first)
 				new_var = tokens[index];
 			if (!var.value().first && 
-				std::all_of(tokens[index].begin(), tokens[index].end(), 
-				[](const char ch) { return std::isalnum(ch); }))
+				std::ranges::all_of(tokens[index],[](const char ch) 
+				{ return std::isalnum(ch); }))
 				return std::unexpected(err::ErrorCode::Var_Not_AlphaNumeric);
 
 			if (tokens.size() - index == 1)
@@ -236,6 +237,18 @@ namespace
 		return code_line;
 	}
 
+	const string fileToString(std::istream& input)
+	{
+		
+	}
 
+	const vector<string> splitNewLine(const string& lines)
+	{
+		return vector<string>();
+	}
 
+	const err::Expect<CodeBlock> groupLines(const string& path)
+	{
+		return err::Expect<CodeBlock>();
+	}
 }
