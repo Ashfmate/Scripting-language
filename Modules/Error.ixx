@@ -26,7 +26,7 @@ export namespace err
 	};
 
 	template<typename type>
-	class Error : public std::expected<type, ErrorCode>
+	class Expect : public std::expected<type, ErrorCode>
 	{
 		using std::expected<type, ErrorCode>::expected;
 	};
