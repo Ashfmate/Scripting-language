@@ -18,6 +18,7 @@ using std::vector, std::string;
 
 namespace
 {
+	vector<string> key_words{"if", "elf", "else", "while", "iterate"};
 	vector<string> var_names;
 
 	typedef std::pair<vector<string>, code::StatementType> CodeStatement;
@@ -157,4 +158,84 @@ namespace
 		else
 			return std::unexpected(err::ErrorCode::Unsupported_Type);
 	}
+
+	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index)
+	{
+		// This error should not happen but if it does, it will be handled
+		if (tokens.empty())
+			return std::unexpected(err::ErrorCode::Empty_Statement);
+		// The result variables
+		vector<string> statement{};
+		code::StatementType type = code::StatementType::Empty_Statement;
+		// If the user inputted "print"
+		if (tokens[index] == "print")
+		{
+			statement.emplace_back(tokens[index]);
+			type = code::StatementType::Print;
+		}
+		// If the user inputted "println"
+		else if (tokens[index] == "println")
+		{
+			statement.emplace_back(tokens[index]);
+			type = code::StatementType::Println;
+		}
+		// If there was something wrong when looking for a variable
+		else if (auto var = findVariable(tokens[index]); !var)
+			return std::unexpected(var.error());
+		// If variable look up was successful
+		else if (std::find(key_words.begin(), key_words.end(), tokens[index]) == key_words.end())
+		{
+			std::string new_var;
+			if (!var.value().first)
+				new_var = tokens[index];
+			if (!var.value().first && 
+				std::all_of(tokens[index].begin(), tokens[index].end(), 
+				[](const char ch) { return std::isalnum(ch); }))
+				return std::unexpected(err::ErrorCode::Var_Not_AlphaNumeric);
+
+			if (tokens.size() - index == 1)
+			{
+				statement.emplace_back(tokens[index]);
+				type = code::StatementType::Var_Ret;
+			}
+			else if (tokens[++index] != "=")
+				return std::unexpected(err::ErrorCode::Assign_Not_Exist);
+			else if (tokens.size() - index == 1)
+				return std::unexpected(err::ErrorCode::Values_Not_Exist);
+			while (++index < tokens.size())
+			{
+				auto var = findVariable(tokens[index]);
+				if (!var) return std::unexpected(var.error());
+				else if (auto data_type = getType(tokens[index]); var.value().first || data_type)
+					statement.emplace_back(tokens[index]);
+				else
+					return std::unexpected(data_type.error());
+			}
+			if (var.value().first)
+				code::StatementType::Var_Set;
+			else
+			{
+				code::StatementType::Var_Create;
+				var_names.emplace_back(new_var);
+			}
+		}
+		return std::pair<vector<string>, code::StatementType>
+		{std::move(statement), type};
+	}
+
+	const err::Expect<CodeLine> groupStatements(const vector<string>& tokens)
+	{
+		CodeLine code_line;
+		for (size_t i = 0; i < tokens.size(); ++i)
+		{
+			if (auto line = makeStatement(tokens, i))
+				code_line.emplace_back(line.value());
+			else
+				return std::unexpected(line.error());
+		}
+		return code_line;
+	}
+
+
+
 }

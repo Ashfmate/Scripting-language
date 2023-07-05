@@ -20,11 +20,12 @@ export namespace err
 		Non_Integral_Index,
 		Non_Positive_Index,
 		Out_Of_Range,
-		// Error codes for statements
-		Incomplete_Statement, // TODO Could be broken down into simpler Error codes
+		// Error codes for Incorrect statements
 		Incorrect_Statement, // TODO Could be broken down into simpler Error codes
 		Indexing_Unknown_Var,
 		Empty_Index_Brace,
+		Empty_Statement,
+		Var_Not_AlphaNumeric,
 	};
 
 	template<typename type>
