@@ -14,7 +14,7 @@ export namespace err
 		Values_Not_Exist,
 		// Error codes for either subtokens missing
 		Missing_Quote,
-		Right_Brace_Missing,
+		Missing_Right_Brace,
 		// Error codes for values not matching
 		Unsupported_Type,
 		Non_Integral_Index,
@@ -23,6 +23,8 @@ export namespace err
 		// Error codes for statements
 		Incomplete_Statement, // TODO Could be broken down into simpler Error codes
 		Incorrect_Statement, // TODO Could be broken down into simpler Error codes
+		Indexing_Unknown_Var,
+		Empty_Index_Brace,
 	};
 
 	template<typename type>

@@ -4,6 +4,7 @@ import <memory>;
 import <optional>;
 import <vector>;
 import <variant>;
+import <algorithm>;
 import <ranges>;
 import <fstream>;
 import <sstream>;
@@ -112,4 +113,48 @@ namespace
 		return std::move(tokens);
 	}
 
+	const err::Expect<std::pair<bool, std::optional<int>>> findVariable(string var)
+	{
+		// Resulting variables
+		bool is_found = false;
+		std::optional<int> index = std::nullopt;
+		// Checks if there is no indexing
+		if (auto l_brace = var.find('['); l_brace == string::npos)
+			is_found = std::find(var_names.begin(),var_names.end(), var) != var_names.end();
+		// There appears to be indexing
+		else
+		{
+			auto r_brace = var.find(']', l_brace + 1);
+			if (r_brace == string::npos)
+				return std::unexpected(err::ErrorCode::Missing_Right_Brace);
+			else if (r_brace - l_brace < 2)
+				return std::unexpected(err::ErrorCode::Empty_Index_Brace);
+			index = utils::toInt(var.substr(l_brace + 1, r_brace - l_brace - 1));
+			var = var.substr(0, l_brace);
+			is_found = std::find(var_names.begin(), var_names.end(), var) != var_names.end();
+			if (!index)
+				return std::unexpected(err::ErrorCode::Non_Integral_Index);
+			else if (!is_found)
+				return std::unexpected(err::ErrorCode::Indexing_Unknown_Var);
+			else if (index.value() < 0)
+				return std::unexpected(err::ErrorCode::Non_Positive_Index);
+		}
+		return std::pair<bool, std::optional<int>>{ is_found, index };
+	}
+
+	const err::Expect<code::Type> getType(const string& val)
+	{
+		if (val == "true" || val == "false")
+			return code::Type::Boolean;
+		else if (val == "null")
+			return code::Type::Null;
+		else if (auto type = utils::isNum(val); type == utils::NumType::Int)
+			return code::Type::Int;
+		else if (type == utils::NumType::Double)
+			return code::Type::Double;
+		else if (val.front() == val.back() && val.back() == '\"')
+			return code::Type::String;
+		else
+			return std::unexpected(err::ErrorCode::Unsupported_Type);
+	}
 }
