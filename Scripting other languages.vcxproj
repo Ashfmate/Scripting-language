@@ -128,19 +128,25 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Parser.cpp" />
+    <ClCompile Include="Modules\Code.ixx" />
+    <ClCompile Include="Modules\Error.ixx" />
+    <ClCompile Include="Modules\Parser.ixx" />
+    <ClCompile Include="Modules\Utils.ixx" />
     <ClCompile Include="ScriptEngine.cpp" />
     <ClCompile Include="Scripting other languages.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Parser.h" />
     <ClInclude Include="Script.h" />
     <ClInclude Include="ScriptEngine.h" />
     <ClInclude Include="ScriptError.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="Concept.txt" />
     <Text Include="Scripting.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,3 +1,21 @@
+Layered approach
+1) Parsing the file for tokens				{I need to make a vector of vector of tokens}
+									Done by	(vectorize_file) which is the first layer of parsing
+											(token_generator) which is the second layer of parsing
+											() which is the third layer of parsing
+In terms of parsing it will be
+{
+	var1 = 42
+	var2 = 55 555 "hello"
+	println var1 var2 55 123 "hello			// This will be broken down into (println)[print] 
+}
+											<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>
+2) Then checking for any problems			{This will ckeck for incomplete statement, using unknown variable when trying to look them up}
+											<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>
+3) Compiling 								{Using the pick_statement function with all the parsed vector of vector of tokens built up}
+											<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>
+4) Executing								{Using the function exec}
+
 // code
 {
 	Data_Type var = value // Initialization
@@ -13,30 +31,6 @@
 		Data_Type func(params) {code}
 	}
 }
-
-//
-	hello 	= 	2.0 , "hello" , true , null // variable = data type , data type , data type , nullopt 
-	^^^^^   ^   ^^^   ^^^^^^^   ^^^^   ^^^^	
-{  "hello","=","2.0",""hello"","true","null" }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	hello[1] **(	hello 	at 		1)** = 		"This" // variable index = data type 
-	^^^^^^^^		^^^^^	^^		^	 ^		 ^^^^
-{ ("hello[1]") OR ("hello","at",   "1"),"=",   ""This"" }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	if 		hello 	at 		1 	equal 	"This" 		println 	"Horray!!!" // keyword expression code
-	^^		^^^^^	^^		^	^^^^^	^^^^^^		^^^^^^^		^^^^^^^^^^^
-{  "if",   "hello","at",   "1","equal",""This"",   "println",  ""Hooray!!!"" }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	elf 	hello 	at 		0 	equal 	2.0 	println 	"Also good" // keyword expression code 
-	^^^		^^^^^	^^		^	^^^^^	^^^		^^^^^^^		^^^^^^^^^^^
-{  "elf",  "hello","at",   "0","equal","2,0",  "println",  ""Also good"" }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	else 	println 	"Sad" // keyword code 
-	^^^^	^^^^^^^		 ^^^
-{  "else", "println",   "Sad" }
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-
 
 	 if   hello equal "hello" println hello
 	 ^^   ^^^^^ ^^^^^ ^^^^^^^ ^^^^^^^ ^^^^^
@@ -75,7 +69,7 @@ print(ln) [variable name]
 <=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>-<=>
 When setting a variable we go
 
-[variable name]([[index]]) (at [index]) = val		OR
+[variable name][[index]] = val			OR
 [variable name] = val1 val2 val3
 
 // First one only accounts for one variable, second accounts for multiple
