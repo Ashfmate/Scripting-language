@@ -30,14 +30,6 @@ namespace
 	/// <returns> Returns a vector of tokens </returns>
 	const err::Expect<vector<string>> parseLine(const string& line);
 	/// <summary>
-	/// Middle layer of the parsing process
-	/// </summary>
-	/// <param name="tokens"> The result of parseLine function </param>
-	/// <returns> 
-	/// Returns a CodeLine which is a vector of pairs of tokens and statement type
-	/// </returns>
-	const err::Expect<CodeLine> groupStatements(const vector<string>& tokens);
-	/// <summary>
 	/// Helper function to check if a variable exists or not.
 	/// If the string has indexing braces then it will return the index too as an optional
 	/// </summary>
@@ -62,6 +54,14 @@ namespace
 	/// <returns> Individual Statements </returns>
 	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index);
 	/// <summary>
+	/// Middle layer of the parsing process
+	/// </summary>
+	/// <param name="tokens"> The result of parseLine function </param>
+	/// <returns> 
+	/// Returns a CodeLine which is a vector of pairs of tokens and statement type
+	/// </returns>
+	const err::Expect<CodeLine> groupStatements(const vector<string>& tokens);
+	/// <summary>
 	/// Converts an input stream (file or std::cin) into a string
 	/// </summary>
 	/// <param name="input"> The input stream to be gotten </param>
@@ -84,5 +84,32 @@ namespace
 	/////						IMPLEMENTATION								/////
 	/////////////////////////////////////////////////////////////////////////////
 
+
+	const err::Expect<vector<string>> parseLine(const string& line)
+	{
+		vector<string> tokens;
+		tokens.reserve(utils::estimateSize(line, " \n;"));
+		string token;
+		bool in_quote = false;
+		for (char ch : line)
+		{
+			if (ch == '\"')
+			{
+				in_quote = !in_quote;
+				token.push_back(ch);
+				if (!in_quote)
+					utils::emplace(tokens, token);
+			}
+			else if (in_quote)
+				token.push_back(ch);
+			else if (ch == ' ')
+				utils::emplace(tokens, token);
+			else
+				token.push_back(ch);
+		}
+		if (in_quote) return std::unexpected(err::ErrorCode::Missing_Quote);
+		utils::emplace(tokens, token);
+		return std::move(tokens);
+	}
 
 }
