@@ -29,7 +29,7 @@ namespace
 	/// </summary>
 	/// <param name="line"> The line of code (i.e text separated by new lines)</param>
 	/// <returns> Returns a vector of tokens </returns>
-	const err::Expect<vector<string>> parseLine(const string& line);
+	const err::Expect<vector<string>> parseLine(const std::string_view line);
 	/// <summary>
 	/// Helper function that loops through the values and fills the statement argument
 	/// </summary>
@@ -50,7 +50,7 @@ namespace
 	/// <param name="tokens"> The tokens to go through </param>
 	/// <param name="index"> There to modify the groupStatement function index </param>
 	/// <returns> Individual Statements </returns>
-	const err::Expect<code::CodeStatement> makeStatement(const vector<string>& tokens, size_t& index);
+	const err::Expect<code::ExecutableStatement> makeStatement(const vector<string>& tokens, size_t& index);
 	/// <summary>
 	/// Middle layer of the parsing process
 	/// </summary>
@@ -58,7 +58,7 @@ namespace
 	/// <returns> 
 	/// Returns a CodeLine which is a vector of pairs of tokens and statement type
 	/// </returns>
-	const err::Expect<code::CodeLine> groupStatements(const vector<string>& tokens);
+	const err::Expect<code::ExecutableLine> groupStatements(const vector<string>& tokens);
 	/// <summary>
 	/// Converts an std::cin into a string, will exit when the character (\) is present
 	/// </summary>
@@ -76,7 +76,7 @@ namespace
 	/// </summary>
 	/// <param name="line_block"> String that contains newline characters</param>
 	/// <returns> An array of strings that are split by newlines </returns>
-	const vector<string> splitNewLine(const string& line_block);
+	const vector<string> splitNewLine(const std::string_view line_block);
 }
 
 export namespace parse
@@ -107,7 +107,7 @@ export namespace parse
 				return std::unexpected(err::ErrorCode::Missing_Right_Brace);
 			else if (r_brace - l_brace < 2)
 				return std::unexpected(err::ErrorCode::Empty_Index_Brace);
-			index = utils::toInt(var.substr(l_brace + 1, r_brace - l_brace - 1));
+			index = utils::getNumType(var.substr(l_brace + 1, r_brace - l_brace - 1));
 			var = var.substr(0, l_brace);
 			is_found = std::ranges::contains(var_names, var);
 			if (!index)
@@ -208,7 +208,7 @@ namespace
 	/////						IMPLEMENTATION								/////
 	/////////////////////////////////////////////////////////////////////////////
 	
-	const err::Expect<vector<string>> parseLine(const string& line)
+	const err::Expect<vector<string>> parseLine(const std::string_view line)
 	{
 		vector<string> tokens;
 		tokens.reserve(utils::estimateSize(line, " \n;"));
@@ -221,17 +221,17 @@ namespace
 				in_quote = !in_quote;
 				token.push_back(ch);
 				if (!in_quote)
-					utils::emplace(tokens, token);
+					utils::moveToken(tokens, token);
 			}
 			else if (in_quote)
 				token.push_back(ch);
 			else if (ch == ' ')
-				utils::emplace(tokens, token);
+				utils::moveToken(tokens, token);
 			else
 				token.push_back(ch);
 		}
 		if (in_quote) return std::unexpected(err::ErrorCode::Missing_Quote);
-		utils::emplace(tokens, token);
+		utils::moveToken(tokens, token);
 		return tokens;
 	}
 
@@ -256,7 +256,7 @@ namespace
 		return std::none_of(var.begin(), var.end(), std::isalnum);
 	}
 
-	const err::Expect<code::CodeStatement> makeStatement(const vector<string>& tokens, size_t& index)
+	const err::Expect<code::ExecutableStatement> makeStatement(const vector<string>& tokens, size_t& index)
 	{
 		// This error should not happen but if it does, it will be handled
 		if (tokens.size() - index == 0)
@@ -327,9 +327,9 @@ namespace
 		{std::move(statement), type};
 	}
 
-	const err::Expect<code::CodeLine> groupStatements(const vector<string>& tokens)
+	const err::Expect<code::ExecutableLine> groupStatements(const vector<string>& tokens)
 	{
-		code::CodeLine code_line;
+		code::ExecutableLine code_line;
 		for (size_t i = 0; i < tokens.size(); ++i)
 		{
 			if (auto line = makeStatement(tokens, i))
@@ -357,15 +357,19 @@ namespace
 	{
 		std::stringstream sstream;
 		sstream << input.rdbuf();
-		return sstream.str();
+		return std::move(sstream).str();
 	}
 
-	const vector<string> splitNewLine(const string& line_block)
+	const vector<string> splitNewLine(const std::string_view line_block)
 	{
 		vector<string> lines;
 		lines.reserve(utils::estimateSize(line_block, "\n"));
-		for (auto view : line_block | std::views::split('\n'))
-			lines.emplace_back(std::ranges::to<std::string>(view));
+
+		std::ranges::transform(
+			std::ranges::subrange(line_block) | std::views::split('\n'),
+			std::back_inserter(lines),
+			[](auto&& view) { return std::string(view.begin(), view.end()); });
+
 		return lines;
 	}
 }

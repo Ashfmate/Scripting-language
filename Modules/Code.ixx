@@ -39,9 +39,9 @@ export namespace code
 		Function
 	};
 
-	typedef std::pair<vector<string>, StatementType> CodeStatement;
-	typedef vector<CodeStatement> CodeLine;
-	typedef vector<CodeLine> CodeBlock;
+	typedef std::pair<vector<string>, StatementType> ExecutableStatement;
+	typedef vector<ExecutableStatement> ExecutableLine;
+	typedef vector<ExecutableLine> CodeBlock;
 
 	struct Code
 	{

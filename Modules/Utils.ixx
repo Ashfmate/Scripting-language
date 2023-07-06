@@ -48,7 +48,7 @@ export namespace utils
 	/// </summary>
 	/// <param name="num"> The string of possible numbers</param>
 	/// <returns> An int if it succeeded otherwise a nullopt </returns>
-	std::optional<int> toInt(std::string num)
+	const std::optional<int>& getNumType(const std::string& num)
 	{
 		if (isNum(num) == Int)
 			return std::stoi(num);
@@ -66,7 +66,7 @@ export namespace utils
 	/// <param name="line"> The string to be split </param>
 	/// <param name="delim"> Used to tell which character the "line" would split from </param>
 	/// <returns> The size of the estimated array of split strings </returns>
-	const size_t estimateSize(const std::string& line, const std::string& delim)
+	const size_t estimateSize(const std::string_view line, const std::string& delim)
 	{
 		return std::count_if(line.begin(), line.end(), [&delim](const char ch)
 			{
@@ -79,7 +79,7 @@ export namespace utils
 	/// <param name="vec"> The vector of strings </param>
 	/// <param name="token"> The string to be moved into the vector</param>
 	/// <returns> Whether the token was moved or not</returns>
-	bool emplace(vector<string>& vec, string& token)
+	bool moveToken(vector<string>& vec, string& token)
 	{
 		if (!token.empty())
 		{
