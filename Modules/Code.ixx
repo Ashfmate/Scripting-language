@@ -1,11 +1,11 @@
 export module Code;
 import <optional>;
 import <variant>;
-import <string>;
-import <vector>;
+export import <string>;
+export import <vector>;
 import <memory>;
 
-using std::string, std::vector;
+export using std::string, std::vector;
 
 export namespace code
 {

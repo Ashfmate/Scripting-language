@@ -9,15 +9,11 @@ import <memory>;
 import <optional>;
 import <vector>;
 import <variant>;
-import <vector>;
-import <string>;
 import Error;
 import Utils;
 import Code;
 
 // TODO might change this implementation as a class but we will see
-
-using std::vector, std::string;
 
 namespace
 {
