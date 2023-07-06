@@ -21,7 +21,7 @@ export namespace utils
 	/// <returns> 
 	/// An enum, zero indicates an not number, one indicates Int and two indicates double
 	/// </returns>
-	NumType isNum(const std::string& str)
+	NumType isNum(const std::string_view str)
 	{
 		if (str.empty()) return None;
 
