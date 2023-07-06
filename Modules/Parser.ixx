@@ -30,27 +30,61 @@ namespace
 	/// <param name="line"> The line of code (i.e text separated by new lines)</param>
 	/// <returns> Returns a vector of tokens </returns>
 	const err::Expect<vector<string>> parseLine(const std::string_view line);
+
 	/// <summary>
-	/// Helper function that loops through the values and fills the statement argument
+	/// Generates a statement (The crux of the parsing engine)
 	/// </summary>
-	/// <param name="tokens"> The tokens of string to loop through</param>
-	/// <param name="statement"> The built up statement </param>
-	/// <param name="index"> The index to the token </param>
-	/// <returns> An error code if something went wrong </returns>
-	const err::ErrorCode loopValues(const vector<string> tokens, const vector<string>& statement, size_t& index);
-	/// <summary>
-	/// Checks if the variable is alpha numeric
-	/// </summary>
-	/// <param name="var"> The variable in question </param>
-	/// <returns> whether the variable is alpha numeric</returns>
-	const bool checkAlNum(const string& var);
-	/// <summary>
-	/// Helper function for groupStatements Which goes through the tokens and creates the individual Statements
-	/// </summary>
-	/// <param name="tokens"> The tokens to go through </param>
-	/// <param name="index"> There to modify the groupStatement function index </param>
-	/// <returns> Individual Statements </returns>
-	const err::Expect<code::ExecutableStatement> makeStatement(const vector<string>& tokens, size_t& index);
+	class StatementGenerator
+	{
+	public:
+		/// <param name="tokens"> The tokens to look through and generate a statement from </param>
+		/// <param name="index"> It is so that the outer function (groupStatement) can adapt to it</param>
+		StatementGenerator(const vector<string>& tokens, size_t& index) : tokens(tokens) , index(index){}
+		/// <summary>
+		/// Starts the generation process
+		/// </summary>
+		/// <returns> An executable statement </returns>
+		const err::Expect<code::ExecutableStatement> operator()();
+	private:
+		/// <summary>
+		/// Loops through the tokens and picks out the values
+		/// </summary>
+		const err::ErrorCode loopValues();
+		/// <summary>
+		/// Handles the token if it is "print" or "println", will set handled to true if it is successful
+		/// </summary>
+		void handlePrint();
+		/// <summary>
+		/// Handles the token if it is a key word, will set handled to true if it is successful
+		/// </summary>
+		void handleKeyWord();
+		/// <summary>
+		/// Handles collection of arguments, will set handled to true if it is successful
+		/// </summary>
+		err::ErrorCode handleArgCollection();
+		/// <summary>
+		/// Handles Var structure, if it is a lone variable will set handled to true 
+		/// Also checks variable name being apha numeric
+		/// </summary>
+		err::ErrorCode handleVarStructure();
+		/// <summary>
+		/// Handles assigning variables to values, will set handled to true if it is successful
+		/// </summary>
+		/// <param name="var_exist"> indicating if a variable exists or not </param>
+		err::ErrorCode handleVarAssign(bool var_exist);
+		/// <summary>
+		/// Helper function where it takes a variable name and check if it is alpha numeric
+		/// </summary>
+		/// <param name="var"> A view to the variable name </param>
+		/// <returns> Whether the variable name is a alpha numeric or not </returns>
+		const bool isAlphaNum(const std::string_view var);
+	private:
+		vector<string> statement;
+		code::StatementType type = code::StatementType::Empty_Statement;
+		const vector<string>& tokens;
+		size_t& index;
+		bool handled = false;
+	};
 	/// <summary>
 	/// Middle layer of the parsing process
 	/// </summary>
@@ -235,7 +269,55 @@ namespace
 		return tokens;
 	}
 
-	const err::ErrorCode loopValues(const vector<string> tokens, vector<string>& statement, size_t& index)
+	// Statement Generator function definition START
+
+
+	const err::Expect<code::ExecutableStatement> StatementGenerator::operator()()
+	{
+		// This error should not happen but if it does, it will be handled
+		if (tokens.size() - index == 0)
+			return std::unexpected(err::ErrorCode::Empty_Statement);
+		bool var_exist = false;
+		if (auto var = parse::findVariable(tokens[index]))
+			var_exist = var.value().first;
+		else
+			return std::unexpected(var.error());
+		if (!handled)
+		{
+			// Handles printing statements
+			handlePrint();
+		}
+		else if (!handled)
+		{
+			// Handles key word look up
+			handleKeyWord();
+		}
+		else if (!handled)
+		{
+			// Handles raw value argument collection
+			if (auto res = handleArgCollection(); res != err::ErrorCode::No_Error)
+				return std::unexpected(res);
+		}
+		else if (!handled)
+		{
+			// Handles checking if the variable is aphanumeric and if it is a lone variable
+			if (auto res = handleVarStructure(); res != err::ErrorCode::No_Error)
+				return std::unexpected(res);
+		}
+		else if (!handled)
+		{
+			// Handles assigning to a variable
+			if (auto res = handleVarAssign(var_exist); res != err::ErrorCode::No_Error)
+				return std::unexpected(res);
+		}
+		else if (!handled)
+		{
+			throw 0;
+		}
+		return code::ExecutableStatement{std::move(statement), type};
+	}
+
+	const err::ErrorCode StatementGenerator::loopValues()
 	{
 		while (index + 1 < tokens.size())
 		{
@@ -251,88 +333,92 @@ namespace
 		return err::ErrorCode::No_Error;
 	}
 
-	const bool checkAlNum(const string& var)
+	void StatementGenerator::handlePrint()
 	{
-		return std::none_of(var.begin(), var.end(), std::isalnum);
-	}
-
-	const err::Expect<code::ExecutableStatement> makeStatement(const vector<string>& tokens, size_t& index)
-	{
-		// This error should not happen but if it does, it will be handled
-		if (tokens.size() - index == 0)
-			return std::unexpected(err::ErrorCode::Empty_Statement);
-		// The result variables
-		vector<string> statement{};
-		code::StatementType type = code::StatementType::Empty_Statement;
-		auto var = parse::findVariable(tokens[index]);
-		// If the user inputted "print"
 		if (tokens[index] == "print")
 		{
 			statement.emplace_back(tokens[index]);
 			type = code::StatementType::Print;
+			handled = true;
 		}
 		// If the user inputted "println"
 		else if (tokens[index] == "println")
 		{
 			statement.emplace_back(tokens[index]);
 			type = code::StatementType::Println;
+			handled = true;
 		}
-		// If there was something wrong when looking for a variable
-		else if (!var)
-			return std::unexpected(var.error());
-		// If variable look up was successful
-		else if (std::ranges::contains(key_words, tokens[index]));
-		// If the value is not a variable and so no need to check assignment and other stuff
-		else if (auto var_type = parse::getType(tokens[index]))
+	}
+
+	void StatementGenerator::handleKeyWord()
+	{
+		handled = std::ranges::contains(key_words, tokens[index]);
+	}
+
+	err::ErrorCode StatementGenerator::handleArgCollection()
+	{
+		if (auto var_type = parse::getType(tokens[index]))
 		{
-			if (auto res = loopValues(tokens, statement, --index); 
-				res != err::ErrorCode::No_Error)
-				return std::unexpected(res);
+			--index;
+			if (auto res = loopValues(); res != err::ErrorCode::No_Error)
+				return res;
 			type = code::StatementType::Arg_Col;
+			handled = true;
 		}
+		return err::ErrorCode::No_Error;
+	}
+
+	err::ErrorCode StatementGenerator::handleVarStructure()
+	{
+		statement.emplace_back(tokens[index]);
+		if (!isAlphaNum(tokens[index]))
+			return err::ErrorCode::Var_Not_AlphaNumeric;
+
+		if (tokens.size() - index == 1)
+		{
+			statement.emplace_back(tokens[index]);
+			type = code::StatementType::Var_Ret;
+			handled = true;
+		}
+		return err::ErrorCode::No_Error;
+	}
+
+	err::ErrorCode StatementGenerator::handleVarAssign(bool var_exist)
+	{
+		if (tokens[++index] != "=")
+			return err::ErrorCode::Assign_Not_Exist;
+
+		else if (tokens.size() - index == 1)
+			return err::ErrorCode::Values_Not_Exist;
+		statement.emplace_back(tokens[index]);
+
+		if (auto res = loopValues(); res != err::ErrorCode::No_Error)
+			return res;
+
+		if (var_exist)
+			type = code::StatementType::Var_Set;
 		else
 		{
-			// The value is a variable
-			statement.emplace_back(tokens[index]);
-			if (checkAlNum(tokens[index]))
-				return std::unexpected(err::ErrorCode::Var_Not_AlphaNumeric);
-
-			if (tokens.size() - index == 1)
-			{
-				statement.emplace_back(tokens[index]);
-				type = code::StatementType::Var_Ret;
-			}
-			else
-			{
-				if (tokens[++index] != "=")
-					return std::unexpected(err::ErrorCode::Assign_Not_Exist);
-
-				else if (tokens.size() - index == 1)
-					return std::unexpected(err::ErrorCode::Values_Not_Exist);
-				statement.emplace_back(tokens[index]);
-
-				if (auto res = loopValues(tokens, statement, index);
-					res != err::ErrorCode::No_Error)
-					return std::unexpected(res);
-				if (var.value().first)
-					type = code::StatementType::Var_Set;
-				else
-				{
-					type = code::StatementType::Var_Create;
-					var_names.emplace_back(statement.front());
-				}
-			}
+			type = code::StatementType::Var_Create;
+			var_names.emplace_back(statement.front());
 		}
-		return std::pair<vector<string>, code::StatementType>
-		{std::move(statement), type};
+		handled = true;
+		return err::ErrorCode::No_Error;
 	}
+
+	const bool StatementGenerator::isAlphaNum(const std::string_view var)
+	{
+		return std::all_of(var.begin(), var.end(), std::isalnum);
+	}
+
+	// Statement Generator function definition END
 
 	const err::Expect<code::ExecutableLine> groupStatements(const vector<string>& tokens)
 	{
 		code::ExecutableLine code_line;
 		for (size_t i = 0; i < tokens.size(); ++i)
 		{
-			if (auto line = makeStatement(tokens, i))
+			if (auto line = StatementGenerator{tokens,i}())
 				code_line.emplace_back(line.value());
 			else
 				return std::unexpected(line.error());
