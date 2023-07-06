@@ -33,9 +33,11 @@ namespace
 	/// <summary>
 	/// Helper function that loops through the values and fills the statement argument
 	/// </summary>
+	/// <param name="tokens"> The tokens of string to loop through</param>
 	/// <param name="statement"> The built up statement </param>
 	/// <param name="index"> The index to the token </param>
-	const err::Expect<void> loopValues(const vector<string> tokens, const vector<string>& statement, size_t& index);
+	/// <returns> An error code if something went wrong </returns>
+	const err::ErrorCode loopValues(const vector<string> tokens, const vector<string>& statement, size_t& index);
 	/// <summary>
 	/// Checks if the variable is alpha numeric
 	/// </summary>
@@ -58,7 +60,7 @@ namespace
 	/// </returns>
 	const err::Expect<code::CodeLine> groupStatements(const vector<string>& tokens);
 	/// <summary>
-	/// Converts an std::cin into a string
+	/// Converts an std::cin into a string, will exit when the character (\) is present
 	/// </summary>
 	/// <param name="input"> The input stream to be gotten </param>
 	/// <returns> A string representation of the input stream </returns>
@@ -128,6 +130,12 @@ export namespace parse
 		vector<string> lines =
 			std::move(splitNewLine(std::move(streamToString(file))));
 
+		auto it = std::remove_if(lines.begin(), lines.end(), [](const string& line)
+			{
+				return line.empty();
+			});
+		lines.erase(it, lines.end());
+
 		code::CodeBlock block;
 		for (auto& line : lines)
 		{
@@ -152,6 +160,11 @@ export namespace parse
 		vector<string> lines =
 			std::move(splitNewLine(std::move(streamToString(std::cin))));
 
+		auto it = std::remove_if(lines.begin(), lines.end(), [](const string& line)
+			{
+				return line.empty();
+			});
+		lines.erase(it, lines.end());
 		code::CodeBlock block;
 		for (auto& line : lines)
 		{
@@ -222,19 +235,20 @@ namespace
 		return tokens;
 	}
 
-	const err::Expect<void> loopValues(const vector<string> tokens, vector<string>& statement, size_t& index)
+	const err::ErrorCode loopValues(const vector<string> tokens, vector<string>& statement, size_t& index)
 	{
 		while (index + 1 < tokens.size())
 		{
 			++index;
 			auto var = parse::findVariable(tokens[index]);
-			if (!var) return std::unexpected(var.error());
+			if (!var) return var.error();
 			else if (auto type = parse::getType(tokens[index]);
 				var.value().first || type)
 				statement.emplace_back(tokens[index]);
 			else
-				return std::unexpected(type.error());
+				return type.error();
 		}
+		return err::ErrorCode::No_Error;
 	}
 
 	const bool checkAlNum(const string& var)
@@ -271,8 +285,9 @@ namespace
 		// If the value is not a variable and so no need to check assignment and other stuff
 		else if (auto var_type = parse::getType(tokens[index]))
 		{
-			if (auto res = loopValues(tokens, statement, --index); !res)
-				return std::unexpected(res.error());
+			if (auto res = loopValues(tokens, statement, --index); 
+				res != err::ErrorCode::No_Error)
+				return std::unexpected(res);
 			type = code::StatementType::Arg_Col;
 		}
 		else
@@ -296,7 +311,9 @@ namespace
 					return std::unexpected(err::ErrorCode::Values_Not_Exist);
 				statement.emplace_back(tokens[index]);
 
-				loopValues(tokens, statement, index);
+				if (auto res = loopValues(tokens, statement, index);
+					res != err::ErrorCode::No_Error)
+					return std::unexpected(res);
 				if (var.value().first)
 					type = code::StatementType::Var_Set;
 				else
@@ -330,7 +347,7 @@ namespace
 		{
 			auto ch = input.get();
 			if (ch != '\\')
-				res.push_back(input.get());
+				res.push_back(ch);
 			else break;
 		}
 		return res;
