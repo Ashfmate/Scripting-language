@@ -15,16 +15,14 @@ import Error;
 import Utils;
 import Code;
 
+// TODO might change this implementation as a class but we will see
+
 using std::vector, std::string;
 
 namespace
 {
 	vector<string> key_words{"if", "elf", "else", "while", "iterate"};
 	vector<string> var_names;
-
-	typedef std::pair<vector<string>, code::StatementType> CodeStatement;
-	typedef vector<CodeStatement> CodeLine;
-	typedef vector<CodeLine> CodeBlock;
 
 	/// <summary>
 	/// Innermost layer of the parsing process
@@ -50,7 +48,7 @@ namespace
 	/// <param name="tokens"> The tokens to go through </param>
 	/// <param name="index"> There to modify the groupStatement function index </param>
 	/// <returns> Individual Statements </returns>
-	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index);
+	const err::Expect<code::CodeStatement> makeStatement(const vector<string>& tokens, size_t& index);
 	/// <summary>
 	/// Middle layer of the parsing process
 	/// </summary>
@@ -58,7 +56,7 @@ namespace
 	/// <returns> 
 	/// Returns a CodeLine which is a vector of pairs of tokens and statement type
 	/// </returns>
-	const err::Expect<CodeLine> groupStatements(const vector<string>& tokens);
+	const err::Expect<code::CodeLine> groupStatements(const vector<string>& tokens);
 	/// <summary>
 	/// Converts an std::cin into a string
 	/// </summary>
@@ -124,13 +122,13 @@ export namespace parse
 	/// </summary>
 	/// <param name="path"> The path of the text file to use </param>
 	/// <returns> The block of code generated </returns>
-	const err::Expect<CodeBlock> parseCode(const string& path)
+	const err::Expect<code::CodeBlock> parseCode(const string& path)
 	{
 		std::ifstream file(path);
 		vector<string> lines =
 			std::move(splitNewLine(std::move(streamToString(file))));
 
-		CodeBlock block;
+		code::CodeBlock block;
 		for (auto& line : lines)
 		{
 			if (auto line_text = parseLine(line))
@@ -149,12 +147,12 @@ export namespace parse
 	/// Parses through the console input and produces tokens for code execution
 	/// </summary>
 	/// <returns></returns>
-	const err::Expect<CodeBlock> parseCode()
+	const err::Expect<code::CodeBlock> parseCode()
 	{
 		vector<string> lines =
 			std::move(splitNewLine(std::move(streamToString(std::cin))));
 
-		CodeBlock block;
+		code::CodeBlock block;
 		for (auto& line : lines)
 		{
 			if (auto line_text = parseLine(line))
@@ -244,7 +242,7 @@ namespace
 		return std::none_of(var.begin(), var.end(), std::isalnum);
 	}
 
-	const err::Expect<CodeStatement> makeStatement(const vector<string>& tokens, size_t& index)
+	const err::Expect<code::CodeStatement> makeStatement(const vector<string>& tokens, size_t& index)
 	{
 		// This error should not happen but if it does, it will be handled
 		if (tokens.size() - index == 0)
@@ -312,9 +310,9 @@ namespace
 		{std::move(statement), type};
 	}
 
-	const err::Expect<CodeLine> groupStatements(const vector<string>& tokens)
+	const err::Expect<code::CodeLine> groupStatements(const vector<string>& tokens)
 	{
-		CodeLine code_line;
+		code::CodeLine code_line;
 		for (size_t i = 0; i < tokens.size(); ++i)
 		{
 			if (auto line = makeStatement(tokens, i))

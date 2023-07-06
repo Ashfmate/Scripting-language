@@ -15,9 +15,9 @@ int main()
 	auto res = parse::parseCode("Scripting.txt");
 
 	if (res)
-		fmt::print("Horray, nothing wrong happened");
+		fmt::print("Horray, nothing wrong happened\n");
 	else
-		fmt::print("Error code :{}", (int)res.error());
+		fmt::print("Error code :{}\n", (int)res.error());
 
 	system("pause");
 	return 0;

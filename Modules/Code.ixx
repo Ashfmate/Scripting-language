@@ -39,6 +39,10 @@ export namespace code
 		Function
 	};
 
+	typedef std::pair<vector<string>, StatementType> CodeStatement;
+	typedef vector<CodeStatement> CodeLine;
+	typedef vector<CodeLine> CodeBlock;
+
 	struct Code
 	{
 		std::shared_ptr<vector<DataType>> data_types;
