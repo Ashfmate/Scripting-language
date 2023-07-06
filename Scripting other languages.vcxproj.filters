@@ -30,6 +30,9 @@
     <ClCompile Include="Modules\Code.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Modules\ScriptEngine.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Script.h">

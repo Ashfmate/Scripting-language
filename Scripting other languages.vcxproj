@@ -131,6 +131,7 @@
     <ClCompile Include="Modules\Code.ixx" />
     <ClCompile Include="Modules\Error.ixx" />
     <ClCompile Include="Modules\Parser.ixx" />
+    <ClCompile Include="Modules\ScriptEngine.ixx" />
     <ClCompile Include="Modules\Utils.ixx" />
     <ClCompile Include="Scripting other languages.cpp" />
   </ItemGroup>
