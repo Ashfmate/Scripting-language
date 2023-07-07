@@ -1,6 +1,6 @@
 export module Code;
 import <optional>;
-import <variant>;
+export import <variant>;
 export import <string>;
 export import <vector>;
 import <memory>;
@@ -26,7 +26,6 @@ export namespace code
 	{
 		Empty_Statement,
 		Arg_Col,
-		Var_Ret,
 		Var_Create,
 		Var_Set,
 		If,

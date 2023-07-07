@@ -26,6 +26,7 @@ export namespace err
 		Empty_Index_Brace,
 		Empty_Statement,
 		Var_Not_AlphaNumeric,
+		Too_Many_Assignments,
 	};
 
 	template<typename type>

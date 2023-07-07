@@ -21,7 +21,7 @@ export namespace utils
 	/// <returns> 
 	/// An enum, zero indicates an not number, one indicates Int and two indicates double
 	/// </returns>
-	NumType isNum(const std::string_view str)
+	NumType getNumType(const std::string_view str)
 	{
 		if (str.empty()) return None;
 
@@ -44,14 +44,25 @@ export namespace utils
 		return has_decimal? Double : Int;
 	}
 	/// <summary>
-	/// Turns a string into an int, checked by isNum
+	/// Turns a string into an int, checked by getNumType
 	/// </summary>
 	/// <param name="num"> The string of possible numbers</param>
 	/// <returns> An int if it succeeded otherwise a nullopt </returns>
-	const std::optional<int>& getNumType(const std::string& num)
+	const std::optional<int>& toInt(const std::string& num)
 	{
-		if (isNum(num) == Int)
+		if (getNumType(num) == Int)
 			return std::stoi(num);
+		return std::nullopt;
+	}
+	/// <summary>
+	/// Turns a string into an double, checked by getNumType
+	/// </summary>
+	/// <param name="num"> The string of possible numbers</param>
+	/// <returns> An double if it succeeded otherwise a nullopt </returns>
+	const std::optional<double>& toDouble(const std::string& num)
+	{
+		if (getNumType(num) == Double)
+			return std::stod(num);
 		return std::nullopt;
 	}
 	/// <returns> Returns a lowercase version of word </returns>

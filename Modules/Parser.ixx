@@ -62,7 +62,7 @@ namespace
 		/// Handles Var structure, if it is a lone variable will set handled to true 
 		/// Also checks variable name being apha numeric
 		/// </summary>
-		err::ErrorCode handleVarStructure();
+		err::ErrorCode handleVarStructure(bool var_exist);
 		/// <summary>
 		/// Handles assigning variables to values, will set handled to true if it is successful
 		/// </summary>
@@ -137,7 +137,7 @@ export namespace parse
 				return std::unexpected(err::ErrorCode::Missing_Right_Brace);
 			else if (r_brace - l_brace < 2)
 				return std::unexpected(err::ErrorCode::Empty_Index_Brace);
-			index = utils::getNumType(var.substr(l_brace + 1, r_brace - l_brace - 1));
+			index = utils::toInt(var.substr(l_brace + 1, r_brace - l_brace - 1));
 			var = var.substr(0, l_brace);
 			is_found = std::ranges::contains(var_names, var);
 			if (!index)
@@ -215,13 +215,13 @@ export namespace parse
 	/// </summary>
 	/// <param name="val"> The string to look through </param>
 	/// <returns> The Type of value that it is </returns>
-	const err::Expect<code::Type> getType(const string& val)
+	const err::Expect<code::Type> getType(const std::string_view val)
 	{
 		if (val == "true" || val == "false")
 			return code::Type::Boolean;
 		else if (val == "null")
 			return code::Type::Null;
-		else if (auto type = utils::isNum(val); type == utils::NumType::Int)
+		else if (auto type = utils::getNumType(string(val)); type == utils::NumType::Int)
 			return code::Type::Int;
 		else if (type == utils::NumType::Double)
 			return code::Type::Double;
@@ -229,6 +229,32 @@ export namespace parse
 			return code::Type::String;
 		else
 			return std::unexpected(err::ErrorCode::Unsupported_Type);
+	}
+
+	const err::Expect<code::DataType> parseType(const std::string_view val)
+	{
+		code::DataType res;
+		auto type = parse::getType(val);
+		if (!type) return std::unexpected(type.error());
+		switch (type.value())
+		{
+		case code::Type::Boolean:
+			res.emplace(bool(val == "true"));
+			break;
+		case code::Type::Int:
+			res.emplace(utils::toInt(string(val)).value());
+			break;
+		case code::Type::Double:
+			res.emplace(utils::toDouble(string(val)).value());
+			break;
+		case code::Type::String:
+			res.emplace(string(val.substr(1, val.size() - 2)));
+			break;
+		case code::Type::Null:
+			res = std::nullopt;
+			break;
+		}
+		return std::move(res);
 	}
 }
 
@@ -283,30 +309,30 @@ namespace
 			// Handles printing statements
 			handlePrint();
 		}
-		else if (!handled)
+		if (!handled)
 		{
 			// Handles key word look up
 			handleKeyWord();
 		}
-		else if (!handled)
+		if (!handled)
 		{
 			// Handles raw value argument collection
 			if (auto res = handleArgCollection(); res != err::ErrorCode::No_Error)
 				return std::unexpected(res);
 		}
-		else if (!handled)
+		if (!handled)
 		{
 			// Handles checking if the variable is aphanumeric and if it is a lone variable
-			if (auto res = handleVarStructure(); res != err::ErrorCode::No_Error)
+			if (auto res = handleVarStructure(var_exist); res != err::ErrorCode::No_Error)
 				return std::unexpected(res);
 		}
-		else if (!handled)
+		if (!handled)
 		{
 			// Handles assigning to a variable
 			if (auto res = handleVarAssign(var_exist); res != err::ErrorCode::No_Error)
 				return std::unexpected(res);
 		}
-		else if (!handled)
+		if (!handled)
 		{
 			throw 0;
 		}
@@ -315,9 +341,10 @@ namespace
 
 	const err::ErrorCode StatementGenerator::loopValues()
 	{
-		while (index + 1 < tokens.size())
+		for (;index < tokens.size(); ++index)
 		{
-			++index;
+			if (tokens[index] == "=")
+				return err::ErrorCode::Assign_Not_Exist;
 			auto var = parse::findVariable(tokens[index]);
 			if (!var) return var.error();
 			else if (auto type = parse::getType(tokens[index]);
@@ -353,30 +380,25 @@ namespace
 
 	err::ErrorCode StatementGenerator::handleArgCollection()
 	{
-		if (auto var_type = parse::getType(tokens[index]))
+		size_t assign_count = std::count(tokens.begin() + index, tokens.end(), "=");
+		if (assign_count == 0)
 		{
-			--index;
 			if (auto res = loopValues(); res != err::ErrorCode::No_Error)
 				return res;
 			type = code::StatementType::Arg_Col;
 			handled = true;
 		}
+		else if (assign_count > 1) err::ErrorCode::Too_Many_Assignments;
 		return err::ErrorCode::No_Error;
 	}
 
-	err::ErrorCode StatementGenerator::handleVarStructure()
+	err::ErrorCode StatementGenerator::handleVarStructure(bool var_exist)
 	{
 		statement.emplace_back(tokens[index]);
-		if (!isAlphaNum(tokens[index]))
+		if (!var_exist && !isAlphaNum(tokens[index]))
 			return err::ErrorCode::Var_Not_AlphaNumeric;
-
-		if (tokens.size() - index == 1)
-		{
-			statement.emplace_back(tokens[index]);
-			type = code::StatementType::Var_Ret;
-			handled = true;
-		}
-		return err::ErrorCode::No_Error;
+		else
+			return err::ErrorCode::No_Error;
 	}
 
 	err::ErrorCode StatementGenerator::handleVarAssign(bool var_exist)
@@ -386,8 +408,9 @@ namespace
 
 		else if (tokens.size() - index == 1)
 			return err::ErrorCode::Values_Not_Exist;
-		statement.emplace_back(tokens[index]);
 
+		statement.emplace_back(tokens[index]);
+		++index;
 		if (auto res = loopValues(); res != err::ErrorCode::No_Error)
 			return res;
 
