@@ -154,7 +154,10 @@ void ScriptEngine::execute()
 					out.front() = '[';
 					out.back() = ']';
 				}
-				std::cout << out << "\n";
+				if (cur->type == code::StatementType::Println)
+					std::cout << out << "\n";
+				else
+					std::cout << out;
 			}
 			break;
 			default:
