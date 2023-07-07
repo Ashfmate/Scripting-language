@@ -166,16 +166,12 @@ void ScriptEngine::execute()
 
 vector<code::DataType> ScriptEngine::getVarValues(const std::string_view var_name)
 {
-	vector<code::DataType> res;
 	for (auto& line : compiled_code)
-	{
 		for (auto& execute : line)
-		{
 			if (execute->name == var_name)
-				res.append_range(*execute->data_types);
-		}
-	}
-	return res;
+				return *execute->data_types;
+
+	return vector<code::DataType>();
 }
 
 Code ScriptEngine::createVar(Tokens tokens)
@@ -207,11 +203,8 @@ Code ScriptEngine::setVar(Tokens tokens)
 
 	Code code_ptr = std::make_unique<code::Code>();
 
-	auto& var = parse::findVariable(tokens[0]).value();
-	if (var.second)
-		code_ptr->name = tokens[0].substr(0, tokens[0].find('['));
-	else
-		code_ptr->name = tokens[0];
+	auto& var_assign = parse::findVariable(tokens[0]).value();
+	code_ptr->name = tokens[0].substr(0, tokens[0].find('['));
 
 	code_ptr->data_types = getCode(tokens[0]).data_types;
 	code_ptr->ret_val = std::make_shared<vector<code::DataType>>();
@@ -220,12 +213,14 @@ Code ScriptEngine::setVar(Tokens tokens)
 		if (auto var = parse::findVariable(tokens[i]).value(); var.first)
 		{
 			if (var.second)
-				code_ptr->ret_val->push_back(getVarValues(tokens[i])[var.second.value()]);
+				code_ptr->ret_val->emplace_back(getVarValues(tokens[i])[var.second.value()]);
 			else
 				code_ptr->ret_val->append_range(getVarValues(tokens[i]));
 		}
 		else
+		{
 			code_ptr->ret_val->emplace_back(parse::parseType(tokens[i]).value());
+		}
 	}
 
 	for (size_t i = 0; i < code_ptr->ret_val->size(); ++i)
@@ -233,7 +228,7 @@ Code ScriptEngine::setVar(Tokens tokens)
 		if (i >= code_ptr->data_types->size())
 			code_ptr->data_types->emplace_back(code_ptr->ret_val->at(i));
 		else
-			code_ptr->data_types->at(i + var.second.value_or(0)) = code_ptr->ret_val->at(i);
+			code_ptr->data_types->at(i + var_assign.second.value_or(0)) = code_ptr->ret_val->at(i);
 	}
 	code_ptr->type = code::StatementType::Var_Set;
 	return std::move(code_ptr);

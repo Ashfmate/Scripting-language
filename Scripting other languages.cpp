@@ -12,12 +12,15 @@ int main()
 	// *) Add functions
 	// *) Add Classes (The hardest of them all)
 	// *) Make a var class in code that will allow for any class to be accepted
-
-	ScriptEngine eng("Scripting.txt");
-	if (auto error = eng.runCode(); error != err::ErrorCode::No_Error)
-		fmt::print("Error code : {} FIX IT BOI", (int)error);
-	else
-		fmt::print("\n\n\n\n Great, the code ran perfectly");
+	err::ErrorCode error = err::ErrorCode::No_Error;
+	while(true)
+	{
+		ScriptEngine eng;
+		if (error = eng.runCode(); error == err::ErrorCode::No_Error)
+			fmt::print("\n\n\n\n Great, the code ran perfectly\n");
+		else break;
+	}
+		fmt::print("Error code : {} FIX IT BOI\n", (int)error);
 	system("pause");
 	return 0;
 }
